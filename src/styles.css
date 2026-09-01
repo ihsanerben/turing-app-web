@@ -79,3 +79,15 @@ h1 {
 .auth-card button { padding: 13px 18px; border: 0; border-radius: 10px; color: white; background: #3855cf; font: inherit; font-weight: 700; cursor: pointer; }
 .auth-card button:disabled { cursor: wait; opacity: .65; }
 .auth-card a { color: #3855cf; }
+
+.portal-nav { position: fixed; inset: 20px auto auto 24px; display: flex; gap: 16px; }
+.portal-nav a { color: #3855cf; font-weight: 700; }
+.profile-card { width: min(100%, 860px); margin-top: 48px; }
+.profile-form, .profile-form fieldset { display: grid; gap: 16px; }
+.profile-form { margin-top: 28px; }
+.profile-form fieldset { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 20px; border: 1px solid #dce4ef; border-radius: 14px; }
+.profile-form legend { padding: 0 8px; font-weight: 750; }
+.profile-form label { display: grid; gap: 7px; color: #34435c; font-weight: 650; }
+.profile-form input, .profile-form select { width: 100%; padding: 12px 13px; border: 1px solid #c9d4e3; border-radius: 10px; background: white; font: inherit; }
+.profile-form button { justify-self: end; padding: 13px 20px; border: 0; border-radius: 10px; color: white; background: #3855cf; font: inherit; font-weight: 700; }
+@media (max-width: 640px) { .profile-form fieldset { grid-template-columns: 1fr; } .profile-card { padding: 28px 20px; } }

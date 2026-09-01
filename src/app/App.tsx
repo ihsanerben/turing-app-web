@@ -4,6 +4,7 @@ import { AdminLayout } from '../layouts/AdminLayout'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StudentLayout } from '../layouts/StudentLayout'
 import { AuthGuard } from '../features/auth/AuthGuard'
+import { ProfilePage } from '../features/profile/ProfilePage'
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResendVerificationPage, ResetPasswordPage, VerifyEmailPage } from '../features/auth/AuthPages'
 
 export function App() {
@@ -20,7 +21,7 @@ export function App() {
           <Route path="resend-verification" element={<ResendVerificationPage />} />
         </Route>
         <Route element={<AuthGuard />}>
-          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /></Route>
+          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /><Route path="profile" element={<ProfilePage />} /></Route>
         </Route>
         <Route element={<AuthGuard role="ADMIN" />}>
           <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /></Route>
