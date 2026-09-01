@@ -1,6 +1,6 @@
 # Turing App Web
 
-React ve Vite tabanlı frontend uygulaması.
+React, TypeScript ve Vite tabanlı frontend uygulaması.
 
 ## Gereksinimler
 
@@ -15,3 +15,11 @@ npm run dev
 ```
 
 Uygulama varsayılan olarak `http://localhost:5173` adresinde açılır.
+
+## Doğrulama
+
+```bash
+npm test
+npm run lint
+npm run build
+```

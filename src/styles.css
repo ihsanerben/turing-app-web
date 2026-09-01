@@ -53,3 +53,20 @@ h1 {
   font-size: 1.05rem;
   line-height: 1.7;
 }
+
+.status {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.status--success {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status--error {
+  color: #991b1b;
+  background: #fee2e2;
+}
