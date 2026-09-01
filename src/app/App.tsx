@@ -3,6 +3,8 @@ import { HealthPage } from '../features/health/HealthPage'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StudentLayout } from '../layouts/StudentLayout'
+import { AuthGuard } from '../features/auth/AuthGuard'
+import { ForgotPasswordPage, LoginPage, RegisterPage, ResendVerificationPage, ResetPasswordPage, VerifyEmailPage } from '../features/auth/AuthPages'
 
 export function App() {
   return (
@@ -10,12 +12,18 @@ export function App() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route index element={<HealthPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
+          <Route path="resend-verification" element={<ResendVerificationPage />} />
         </Route>
-        <Route path="portal" element={<StudentLayout />}>
-          <Route index element={<Placeholder title="Öğrenci portalı" />} />
+        <Route element={<AuthGuard />}>
+          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /></Route>
         </Route>
-        <Route path="admin" element={<AdminLayout />}>
-          <Route index element={<Placeholder title="Admin portalı" />} />
+        <Route element={<AuthGuard role="ADMIN" />}>
+          <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /></Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
