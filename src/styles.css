@@ -124,6 +124,12 @@ h1 {
   min-height: 100vh;
   background: #f4f7fb;
 }
+.admin-shell {
+  background: #f6f7fa;
+}
+.admin-body {
+  grid-template-columns: 250px minmax(0, 1fr);
+}
 .student-header {
   position: sticky;
   z-index: 10;
@@ -263,6 +269,7 @@ h1 {
 .admin-workspace {
   width: min(1100px, 100%);
   margin-top: 50px;
+  padding-bottom: 60px;
 }
 .admin-grid {
   display: grid;
@@ -614,6 +621,92 @@ h1 {
 .dashboard-grid .management-card {
   margin: 0;
 }
+.admin-action-grid .management-card {
+  align-content: start;
+}
+.admin-action-grid p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+.admin-action-grid a {
+  justify-self: start;
+  color: #3855cf;
+  font-weight: 750;
+}
+.audit-filters {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.audit-filters button {
+  align-self: end;
+}
+.audit-list {
+  display: grid;
+  gap: 14px;
+}
+.audit-entry {
+  margin: 0;
+}
+.audit-entry summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  cursor: pointer;
+}
+.audit-entry summary > span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.audit-entry summary > span:last-child {
+  text-align: right;
+}
+.audit-entry small,
+.audit-entry dd {
+  overflow-wrap: anywhere;
+  color: #64748b;
+}
+.audit-metadata {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+}
+.audit-metadata div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+}
+.audit-metadata dt {
+  font-weight: 750;
+}
+.audit-metadata dd {
+  margin: 0;
+}
+.audit-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.audit-values h2 {
+  font-size: 1rem;
+}
+.audit-values pre {
+  max-height: 320px;
+  overflow: auto;
+  padding: 14px;
+  border-radius: 10px;
+  color: #dbeafe;
+  background: #172033;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
 .next-step-card {
   grid-column: 1/-1;
   align-items: start;
@@ -712,7 +805,8 @@ h1 {
   font-size: 0.85rem;
 }
 @media (max-width: 850px) {
-  .student-body {
+  .student-body,
+  .admin-body {
     grid-template-columns: 1fr;
   }
   .portal-nav {
@@ -740,6 +834,18 @@ h1 {
   }
   .dashboard-hero .button-link {
     width: 100%;
+  }
+  .audit-filters,
+  .audit-values,
+  .audit-entry summary {
+    grid-template-columns: 1fr;
+  }
+  .audit-entry summary > span:last-child {
+    text-align: left;
+  }
+  .audit-metadata div {
+    grid-template-columns: 1fr;
+    gap: 3px;
   }
 }
 .application-list {

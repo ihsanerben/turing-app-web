@@ -125,7 +125,7 @@ export function EvaluationPage() {
   return (
     <section className="admin-workspace evaluation-page">
       <header>
-        <p className="eyebrow">Phase 9</p>
+        <p className="eyebrow">Değerlendirme</p>
         <h1>Değerlendirme</h1>
         <p>
           Kriterleri tanımlayın, başvuruları puanlayın ve 100 üzerinden sıralamayı izleyin. Nihai
