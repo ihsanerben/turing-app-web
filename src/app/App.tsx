@@ -6,6 +6,7 @@ import { StudentLayout } from '../layouts/StudentLayout'
 import { AuthGuard } from '../features/auth/AuthGuard'
 import { ProfilePage } from '../features/profile/ProfilePage'
 import { ScholarshipAdminPage } from '../features/scholarship/ScholarshipAdminPage'
+import { FormBuilderPage } from '../features/forms/FormBuilderPage'
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResendVerificationPage, ResetPasswordPage, VerifyEmailPage } from '../features/auth/AuthPages'
 
 export function App() {
@@ -25,7 +26,7 @@ export function App() {
           <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /><Route path="profile" element={<ProfilePage />} /></Route>
         </Route>
         <Route element={<AuthGuard role="ADMIN" />}>
-          <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /><Route path="programs" element={<ScholarshipAdminPage />} /></Route>
+          <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /><Route path="programs" element={<ScholarshipAdminPage />} /><Route path="forms/:periodId" element={<FormBuilderPage />} /></Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
