@@ -11,6 +11,8 @@ import { ApplicationListPage } from '../features/applications/ApplicationListPag
 import { ApplicationFormPage } from '../features/applications/ApplicationFormPage'
 import { AdminApplicationsPage } from '../features/adminApplications/AdminApplicationsPage'
 import { EvaluationPage } from '../features/evaluation/EvaluationPage'
+import { AdminInterviewsPage } from '../features/interviews/AdminInterviewsPage'
+import { StudentInterviewsPage } from '../features/interviews/StudentInterviewsPage'
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResendVerificationPage, ResetPasswordPage, VerifyEmailPage } from '../features/auth/AuthPages'
 
 export function App() {
@@ -27,10 +29,10 @@ export function App() {
           <Route path="resend-verification" element={<ResendVerificationPage />} />
         </Route>
         <Route element={<AuthGuard />}>
-          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /><Route path="profile" element={<ProfilePage />} /><Route path="applications" element={<ApplicationListPage />} /><Route path="applications/:id/form" element={<ApplicationFormPage />} /></Route>
+          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /><Route path="profile" element={<ProfilePage />} /><Route path="applications" element={<ApplicationListPage />} /><Route path="applications/:id/form" element={<ApplicationFormPage />} /><Route path="interviews" element={<StudentInterviewsPage />} /></Route>
         </Route>
         <Route element={<AuthGuard role="ADMIN" />}>
-          <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /><Route path="applications" element={<AdminApplicationsPage />} /><Route path="programs" element={<ScholarshipAdminPage />} /><Route path="forms/:periodId" element={<FormBuilderPage />} /><Route path="evaluation" element={<EvaluationPage />} /></Route>
+          <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /><Route path="applications" element={<AdminApplicationsPage />} /><Route path="programs" element={<ScholarshipAdminPage />} /><Route path="forms/:periodId" element={<FormBuilderPage />} /><Route path="evaluation" element={<EvaluationPage />} /><Route path="interviews" element={<AdminInterviewsPage />} /></Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
