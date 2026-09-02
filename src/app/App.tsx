@@ -7,6 +7,8 @@ import { AuthGuard } from '../features/auth/AuthGuard'
 import { ProfilePage } from '../features/profile/ProfilePage'
 import { ScholarshipAdminPage } from '../features/scholarship/ScholarshipAdminPage'
 import { FormBuilderPage } from '../features/forms/FormBuilderPage'
+import { ApplicationListPage } from '../features/applications/ApplicationListPage'
+import { ApplicationFormPage } from '../features/applications/ApplicationFormPage'
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResendVerificationPage, ResetPasswordPage, VerifyEmailPage } from '../features/auth/AuthPages'
 
 export function App() {
@@ -23,7 +25,7 @@ export function App() {
           <Route path="resend-verification" element={<ResendVerificationPage />} />
         </Route>
         <Route element={<AuthGuard />}>
-          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /><Route path="profile" element={<ProfilePage />} /></Route>
+          <Route path="portal" element={<StudentLayout />}><Route index element={<Placeholder title="Öğrenci portalı" />} /><Route path="profile" element={<ProfilePage />} /><Route path="applications" element={<ApplicationListPage />} /><Route path="applications/:id/form" element={<ApplicationFormPage />} /></Route>
         </Route>
         <Route element={<AuthGuard role="ADMIN" />}>
           <Route path="admin" element={<AdminLayout />}><Route index element={<Placeholder title="Admin portalı" />} /><Route path="programs" element={<ScholarshipAdminPage />} /><Route path="forms/:periodId" element={<FormBuilderPage />} /></Route>
