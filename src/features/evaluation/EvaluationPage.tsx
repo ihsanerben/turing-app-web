@@ -1,25 +1,347 @@
-import axios from 'axios'
-import {useEffect,useState,type FormEvent} from 'react'
-import {scholarshipApi,type Period,type Program} from '../scholarship/scholarshipApi'
-import {evaluationApi,type ApplicationEvaluation,type Criterion,type Ranking} from './evaluationApi'
+import axios from 'axios';
+import { useEffect, useState, type FormEvent } from 'react';
+import { scholarshipApi, type Period, type Program } from '../scholarship/scholarshipApi';
+import {
+  evaluationApi,
+  type ApplicationEvaluation,
+  type Criterion,
+  type Ranking,
+} from './evaluationApi';
 
-export function EvaluationPage(){
- const [programs,setPrograms]=useState<Program[]>([]);const [programId,setProgramId]=useState('');const [periods,setPeriods]=useState<Period[]>([]);const [periodId,setPeriodId]=useState('');const [criteria,setCriteria]=useState<Criterion[]>([]);const [ranking,setRanking]=useState<Ranking[]>([]);const [applicationId,setApplicationId]=useState('');const [evaluation,setEvaluation]=useState<ApplicationEvaluation|null>(null);const [editing,setEditing]=useState<Criterion|null>(null);const [error,setError]=useState('');const [loading,setLoading]=useState(true)
- useEffect(()=>{scholarshipApi.programs().then(values=>{setPrograms(values);setProgramId(values[0]?.id??'');setLoading(false)}).catch(e=>{setError(message(e));setLoading(false)})},[])
- useEffect(()=>{if(!programId)return;scholarshipApi.periods(programId).then(values=>{setPeriods(values);setPeriodId(current=>values.some(v=>v.id===current)?current:values[0]?.id??'')}).catch(e=>setError(message(e)))},[programId])
- async function loadPeriod(id=periodId){if(!id)return;setError('');try{const [c,r]=await Promise.all([evaluationApi.criteria(id),evaluationApi.ranking(id)]);setCriteria(c);setRanking(r)}catch(e){setError(message(e))}}
- useEffect(()=>{if(!periodId)return;Promise.all([evaluationApi.criteria(periodId),evaluationApi.ranking(periodId)]).then(([c,r])=>{setCriteria(c);setRanking(r)}).catch(e=>setError(message(e)))},[periodId])
- async function saveCriterion(event:FormEvent<HTMLFormElement>){event.preventDefault();const form=event.currentTarget;const data=new FormData(form);const body={name:String(data.get('name')),description:String(data.get('description')),maxScore:Number(data.get('maxScore')),weight:Number(data.get('weight')),displayOrder:Number(data.get('displayOrder'))};try{if(editing)await evaluationApi.updateCriterion(editing,body);else await evaluationApi.createCriterion(periodId,body);setEditing(null);form.reset();await loadPeriod()}catch(e){setError(message(e))}}
- async function remove(value:Criterion){try{await evaluationApi.deleteCriterion(value);await loadPeriod()}catch(e){setError(message(e))}}
- async function openEvaluation(event:FormEvent<HTMLFormElement>){event.preventDefault();try{setEvaluation(await evaluationApi.evaluation(applicationId))}catch(e){setError(message(e))}}
- async function saveScore(event:FormEvent<HTMLFormElement>,criterion:Criterion){event.preventDefault();const data=new FormData(event.currentTarget);const current=evaluation?.scores.find(v=>v.criterionId===criterion.id);try{setEvaluation(await evaluationApi.score(applicationId,criterion.id,Number(data.get('score')),String(data.get('comment')),current?.version));await loadPeriod()}catch(e){setError(message(e))}}
- if(loading)return <p role="status">Değerlendirme ekranı yükleniyor…</p>
- return <section className="admin-workspace evaluation-page"><header><p className="eyebrow">Phase 9</p><h1>Değerlendirme</h1><p>Kriterleri tanımlayın, başvuruları puanlayın ve 100 üzerinden sıralamayı izleyin. Nihai karar başvuru yönetiminden manuel verilir.</p></header>{error&&<p role="alert" className="status status--error">{error}</p>}
-  <section className="management-card evaluation-selector"><label>Program<select value={programId} onChange={e=>setProgramId(e.target.value)}>{programs.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label><label>Dönem<select value={periodId} onChange={e=>setPeriodId(e.target.value)}>{periods.map(v=><option key={v.id} value={v.id}>{v.name} · {v.status}</option>)}</select></label></section>
-  {periodId&&<div className="evaluation-grid"><form className="management-card" onSubmit={saveCriterion} key={editing?.id??'new'}><h2>{editing?'Kriteri düzenle':'Yeni kriter'}</h2><label>Ad<input name="name" required maxLength={160} defaultValue={editing?.name}/></label><label>Açıklama<textarea name="description" maxLength={1000} defaultValue={editing?.description??''}/></label><label>Maksimum puan<input name="maxScore" type="number" min="0.01" step="0.01" required defaultValue={editing?.maxScore}/></label><label>Ağırlık<input name="weight" type="number" min="0.01" step="0.01" required defaultValue={editing?.weight}/></label><label>Sıra<input name="displayOrder" type="number" min="0" required defaultValue={editing?.displayOrder??criteria.length}/></label><button>{editing?'Kriteri güncelle':'Kriter ekle'}</button>{editing&&<button type="button" className="secondary" onClick={()=>setEditing(null)}>Vazgeç</button>}</form>
-  <section className="management-card"><h2>Kriterler</h2>{criteria.length===0?<p>Henüz kriter yok.</p>:<div className="criterion-list">{criteria.map(v=><article key={v.id}><span><strong>{v.displayOrder+1}. {v.name}</strong><small>En fazla {v.maxScore} · Ağırlık {v.weight}</small></span><span><button onClick={()=>setEditing(v)}>Düzenle</button><button className="danger" onClick={()=>void remove(v)}>Sil</button></span></article>)}</div>}</section></div>}
-  {periodId&&<section className="management-card"><h2>Dönem sıralaması</h2>{ranking.length===0?<p>Henüz puanlanmış başvuru yok.</p>:<table><thead><tr><th>Sıra</th><th>Öğrenci</th><th>Toplam</th></tr></thead><tbody>{ranking.map(v=><tr key={v.applicationId}><td>{v.rank||'—'}</td><td>{v.studentName}<small>{v.studentEmail}</small></td><td>{v.weightedTotal==null?'Puanlanmadı':`${v.weightedTotal.toFixed(3)} / 100`}</td></tr>)}</tbody></table>}</section>}
-  {periodId&&<section className="management-card"><h2>Başvuru puanlama</h2><form className="application-lookup" onSubmit={openEvaluation}><label>Başvuru ID<input value={applicationId} onChange={e=>setApplicationId(e.target.value)} required/></label><button>Başvuruyu aç</button></form>{evaluation&&<><p><strong>Ağırlıklı toplam:</strong> {evaluation.weightedTotal==null?'—':`${evaluation.weightedTotal.toFixed(3)} / 100`}</p>{criteria.map(c=>{const current=evaluation.scores.find(v=>v.criterionId===c.id);return <form className="score-form" onSubmit={e=>void saveScore(e,c)} key={`${c.id}-${current?.version??'new'}`}><h3>{c.name}</h3><label>Puan (0–{c.maxScore})<input name="score" type="number" min="0" max={c.maxScore} step="0.01" required defaultValue={current?.score}/></label><label>Internal yorum<textarea name="comment" maxLength={2000} defaultValue={current?.comment??''}/></label><button>Puanı kaydet</button>{current&&<small>{current.reviewerName} tarafından puanlandı.</small>}</form>})}</>}</section>}
- </section>
+export function EvaluationPage() {
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [programId, setProgramId] = useState('');
+  const [periods, setPeriods] = useState<Period[]>([]);
+  const [periodId, setPeriodId] = useState('');
+  const [criteria, setCriteria] = useState<Criterion[]>([]);
+  const [ranking, setRanking] = useState<Ranking[]>([]);
+  const [applicationId, setApplicationId] = useState('');
+  const [evaluation, setEvaluation] = useState<ApplicationEvaluation | null>(null);
+  const [editing, setEditing] = useState<Criterion | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    scholarshipApi
+      .programs()
+      .then((values) => {
+        setPrograms(values);
+        setProgramId(values[0]?.id ?? '');
+        setLoading(false);
+      })
+      .catch((e) => {
+        setError(message(e));
+        setLoading(false);
+      });
+  }, []);
+  useEffect(() => {
+    if (!programId) return;
+    scholarshipApi
+      .periods(programId)
+      .then((values) => {
+        setPeriods(values);
+        setPeriodId((current) =>
+          values.some((v) => v.id === current) ? current : (values[0]?.id ?? ''),
+        );
+      })
+      .catch((e) => setError(message(e)));
+  }, [programId]);
+  async function loadPeriod(id = periodId) {
+    if (!id) return;
+    setError('');
+    try {
+      const [c, r] = await Promise.all([evaluationApi.criteria(id), evaluationApi.ranking(id)]);
+      setCriteria(c);
+      setRanking(r);
+    } catch (e) {
+      setError(message(e));
+    }
+  }
+  useEffect(() => {
+    if (!periodId) return;
+    Promise.all([evaluationApi.criteria(periodId), evaluationApi.ranking(periodId)])
+      .then(([c, r]) => {
+        setCriteria(c);
+        setRanking(r);
+      })
+      .catch((e) => setError(message(e)));
+  }, [periodId]);
+  async function saveCriterion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const body = {
+      name: String(data.get('name')),
+      description: String(data.get('description')),
+      maxScore: Number(data.get('maxScore')),
+      weight: Number(data.get('weight')),
+      displayOrder: Number(data.get('displayOrder')),
+    };
+    try {
+      if (editing) await evaluationApi.updateCriterion(editing, body);
+      else await evaluationApi.createCriterion(periodId, body);
+      setEditing(null);
+      form.reset();
+      await loadPeriod();
+    } catch (e) {
+      setError(message(e));
+    }
+  }
+  async function remove(value: Criterion) {
+    try {
+      await evaluationApi.deleteCriterion(value);
+      await loadPeriod();
+    } catch (e) {
+      setError(message(e));
+    }
+  }
+  async function openEvaluation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      setEvaluation(await evaluationApi.evaluation(applicationId));
+    } catch (e) {
+      setError(message(e));
+    }
+  }
+  async function saveScore(event: FormEvent<HTMLFormElement>, criterion: Criterion) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const current = evaluation?.scores.find((v) => v.criterionId === criterion.id);
+    try {
+      setEvaluation(
+        await evaluationApi.score(
+          applicationId,
+          criterion.id,
+          Number(data.get('score')),
+          String(data.get('comment')),
+          current?.version,
+        ),
+      );
+      await loadPeriod();
+    } catch (e) {
+      setError(message(e));
+    }
+  }
+  if (loading) return <p role="status">Değerlendirme ekranı yükleniyor…</p>;
+  return (
+    <section className="admin-workspace evaluation-page">
+      <header>
+        <p className="eyebrow">Phase 9</p>
+        <h1>Değerlendirme</h1>
+        <p>
+          Kriterleri tanımlayın, başvuruları puanlayın ve 100 üzerinden sıralamayı izleyin. Nihai
+          karar başvuru yönetiminden manuel verilir.
+        </p>
+      </header>
+      {error && (
+        <p role="alert" className="status status--error">
+          {error}
+        </p>
+      )}
+      <section className="management-card evaluation-selector">
+        <label>
+          Program
+          <select value={programId} onChange={(e) => setProgramId(e.target.value)}>
+            {programs.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Dönem
+          <select value={periodId} onChange={(e) => setPeriodId(e.target.value)}>
+            {periods.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name} · {v.status}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+      {periodId && (
+        <div className="evaluation-grid">
+          <form className="management-card" onSubmit={saveCriterion} key={editing?.id ?? 'new'}>
+            <h2>{editing ? 'Kriteri düzenle' : 'Yeni kriter'}</h2>
+            <label>
+              Ad
+              <input name="name" required maxLength={160} defaultValue={editing?.name} />
+            </label>
+            <label>
+              Açıklama
+              <textarea
+                name="description"
+                maxLength={1000}
+                defaultValue={editing?.description ?? ''}
+              />
+            </label>
+            <label>
+              Maksimum puan
+              <input
+                name="maxScore"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                defaultValue={editing?.maxScore}
+              />
+            </label>
+            <label>
+              Ağırlık
+              <input
+                name="weight"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                defaultValue={editing?.weight}
+              />
+            </label>
+            <label>
+              Sıra
+              <input
+                name="displayOrder"
+                type="number"
+                min="0"
+                required
+                defaultValue={editing?.displayOrder ?? criteria.length}
+              />
+            </label>
+            <button>{editing ? 'Kriteri güncelle' : 'Kriter ekle'}</button>
+            {editing && (
+              <button type="button" className="secondary" onClick={() => setEditing(null)}>
+                Vazgeç
+              </button>
+            )}
+          </form>
+          <section className="management-card">
+            <h2>Kriterler</h2>
+            {criteria.length === 0 ? (
+              <p>Henüz kriter yok.</p>
+            ) : (
+              <div className="criterion-list">
+                {criteria.map((v) => (
+                  <article key={v.id}>
+                    <span>
+                      <strong>
+                        {v.displayOrder + 1}. {v.name}
+                      </strong>
+                      <small>
+                        En fazla {v.maxScore} · Ağırlık {v.weight}
+                      </small>
+                    </span>
+                    <span>
+                      <button onClick={() => setEditing(v)}>Düzenle</button>
+                      <button className="danger" onClick={() => void remove(v)}>
+                        Sil
+                      </button>
+                    </span>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+      {periodId && (
+        <section className="management-card">
+          <h2>Dönem sıralaması</h2>
+          {ranking.length === 0 ? (
+            <p>Henüz puanlanmış başvuru yok.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Sıra</th>
+                  <th>Öğrenci</th>
+                  <th>Toplam</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ranking.map((v) => (
+                  <tr key={v.applicationId}>
+                    <td>{v.rank || '—'}</td>
+                    <td>
+                      {v.studentName}
+                      <small>{v.studentEmail}</small>
+                    </td>
+                    <td>
+                      {v.weightedTotal == null
+                        ? 'Puanlanmadı'
+                        : `${v.weightedTotal.toFixed(3)} / 100`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      )}
+      {periodId && (
+        <section className="management-card">
+          <h2>Başvuru puanlama</h2>
+          <form className="application-lookup" onSubmit={openEvaluation}>
+            <label>
+              Başvuru ID
+              <input
+                value={applicationId}
+                onChange={(e) => setApplicationId(e.target.value)}
+                required
+              />
+            </label>
+            <button>Başvuruyu aç</button>
+          </form>
+          {evaluation && (
+            <>
+              <p>
+                <strong>Ağırlıklı toplam:</strong>{' '}
+                {evaluation.weightedTotal == null
+                  ? '—'
+                  : `${evaluation.weightedTotal.toFixed(3)} / 100`}
+              </p>
+              {criteria.map((c) => {
+                const current = evaluation.scores.find((v) => v.criterionId === c.id);
+                return (
+                  <form
+                    className="score-form"
+                    onSubmit={(e) => void saveScore(e, c)}
+                    key={`${c.id}-${current?.version ?? 'new'}`}
+                  >
+                    <h3>{c.name}</h3>
+                    <label>
+                      Puan (0–{c.maxScore})
+                      <input
+                        name="score"
+                        type="number"
+                        min="0"
+                        max={c.maxScore}
+                        step="0.01"
+                        required
+                        defaultValue={current?.score}
+                      />
+                    </label>
+                    <label>
+                      Internal yorum
+                      <textarea
+                        name="comment"
+                        maxLength={2000}
+                        defaultValue={current?.comment ?? ''}
+                      />
+                    </label>
+                    <button>Puanı kaydet</button>
+                    {current && <small>{current.reviewerName} tarafından puanlandı.</small>}
+                  </form>
+                );
+              })}
+            </>
+          )}
+        </section>
+      )}
+    </section>
+  );
 }
-function message(error:unknown){return axios.isAxiosError(error)?error.response?.data?.message??'İşlem tamamlanamadı.':'İşlem tamamlanamadı.'}
+function message(error: unknown) {
+  return axios.isAxiosError(error)
+    ? (error.response?.data?.message ?? 'İşlem tamamlanamadı.')
+    : 'İşlem tamamlanamadı.';
+}

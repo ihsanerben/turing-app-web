@@ -1,7 +1,81 @@
-import {apiClient} from '../../api/apiClient'
-export type InterviewStatus='SCHEDULED'|'COMPLETED'|'CANCELLED'|'NO_SHOW'|'RESCHEDULED';export type LocationType='ONLINE'|'IN_PERSON'|'PHONE'
-export type StudentInterview={id:string;applicationId:string;programName:string;periodName:string;startsAt:string;endsAt:string;status:InterviewStatus;locationType:LocationType;location:string|null;meetingUrl:string|null;version:number}
-export type Feedback={id:string;interviewerId:string;interviewerName:string;score:number|null;notes:string;recommendation:string|null;version:number}
-export type AdminInterview={id:string;applicationId:string;startsAt:string;endsAt:string;status:InterviewStatus;locationType:LocationType;location:string|null;meetingUrl:string|null;createdBy:string;version:number;feedback:Feedback[]}
-export type ScheduleInput={startsAt:string;endsAt:string;locationType:LocationType;location:string;meetingUrl:string;version?:number}
-export const interviewApi={mine:()=>apiClient.get<StudentInterview[]>('/api/me/interviews').then(r=>r.data),byApplication:(id:string)=>apiClient.get<AdminInterview[]>(`/api/admin/applications/${id}/interviews`).then(r=>r.data),create:(applicationId:string,body:ScheduleInput)=>apiClient.post<AdminInterview>(`/api/admin/applications/${applicationId}/interviews`,body).then(r=>r.data),update:(value:AdminInterview,body:ScheduleInput)=>apiClient.put<AdminInterview>(`/api/admin/interviews/${value.id}`,{...body,version:value.version}).then(r=>r.data),status:(value:AdminInterview,status:InterviewStatus)=>apiClient.patch<AdminInterview>(`/api/admin/interviews/${value.id}/status`,{status,version:value.version}).then(r=>r.data),feedback:(value:AdminInterview,score:number|null,notes:string,recommendation:string,version?:number)=>apiClient.put<AdminInterview>(`/api/admin/interviews/${value.id}/feedback`,{score,notes,recommendation,version}).then(r=>r.data)}
+import { apiClient } from '../../api/apiClient';
+export type InterviewStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED';
+export type LocationType = 'ONLINE' | 'IN_PERSON' | 'PHONE';
+export type StudentInterview = {
+  id: string;
+  applicationId: string;
+  programName: string;
+  periodName: string;
+  startsAt: string;
+  endsAt: string;
+  status: InterviewStatus;
+  locationType: LocationType;
+  location: string | null;
+  meetingUrl: string | null;
+  version: number;
+};
+export type Feedback = {
+  id: string;
+  interviewerId: string;
+  interviewerName: string;
+  score: number | null;
+  notes: string;
+  recommendation: string | null;
+  version: number;
+};
+export type AdminInterview = {
+  id: string;
+  applicationId: string;
+  startsAt: string;
+  endsAt: string;
+  status: InterviewStatus;
+  locationType: LocationType;
+  location: string | null;
+  meetingUrl: string | null;
+  createdBy: string;
+  version: number;
+  feedback: Feedback[];
+};
+export type ScheduleInput = {
+  startsAt: string;
+  endsAt: string;
+  locationType: LocationType;
+  location: string;
+  meetingUrl: string;
+  version?: number;
+};
+export const interviewApi = {
+  mine: () => apiClient.get<StudentInterview[]>('/api/me/interviews').then((r) => r.data),
+  byApplication: (id: string) =>
+    apiClient.get<AdminInterview[]>(`/api/admin/applications/${id}/interviews`).then((r) => r.data),
+  create: (applicationId: string, body: ScheduleInput) =>
+    apiClient
+      .post<AdminInterview>(`/api/admin/applications/${applicationId}/interviews`, body)
+      .then((r) => r.data),
+  update: (value: AdminInterview, body: ScheduleInput) =>
+    apiClient
+      .put<AdminInterview>(`/api/admin/interviews/${value.id}`, { ...body, version: value.version })
+      .then((r) => r.data),
+  status: (value: AdminInterview, status: InterviewStatus) =>
+    apiClient
+      .patch<AdminInterview>(`/api/admin/interviews/${value.id}/status`, {
+        status,
+        version: value.version,
+      })
+      .then((r) => r.data),
+  feedback: (
+    value: AdminInterview,
+    score: number | null,
+    notes: string,
+    recommendation: string,
+    version?: number,
+  ) =>
+    apiClient
+      .put<AdminInterview>(`/api/admin/interviews/${value.id}/feedback`, {
+        score,
+        notes,
+        recommendation,
+        version,
+      })
+      .then((r) => r.data),
+};
