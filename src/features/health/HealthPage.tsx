@@ -1,29 +1,27 @@
-import { useEffect, useState } from 'react'
-import { getHealth, type HealthResponse } from './healthApi'
+import { useEffect, useState } from 'react';
+import { getHealth, type HealthResponse } from './healthApi';
 
 type HealthState =
-  | { status: 'loading' }
-  | { status: 'success'; data: HealthResponse }
-  | { status: 'error' }
+  { status: 'loading' } | { status: 'success'; data: HealthResponse } | { status: 'error' };
 
 export function HealthPage() {
-  const [health, setHealth] = useState<HealthState>({ status: 'loading' })
+  const [health, setHealth] = useState<HealthState>({ status: 'loading' });
 
   useEffect(() => {
-    let active = true
+    let active = true;
 
     getHealth()
       .then((data) => {
-        if (active) setHealth({ status: 'success', data })
+        if (active) setHealth({ status: 'success', data });
       })
       .catch(() => {
-        if (active) setHealth({ status: 'error' })
-      })
+        if (active) setHealth({ status: 'error' });
+      });
 
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
   return (
     <section className="card" aria-labelledby="page-title">
@@ -41,5 +39,5 @@ export function HealthPage() {
         </p>
       )}
     </section>
-  )
+  );
 }

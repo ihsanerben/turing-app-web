@@ -1,12 +1,12 @@
-import { apiClient } from '../../api/apiClient'
+import { apiClient } from '../../api/apiClient';
 
 export type User = {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  role: 'USER' | 'ADMIN'
-}
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'USER' | 'ADMIN';
+};
 
 export const authApi = {
   csrf: () => apiClient.get('/api/auth/csrf'),
@@ -19,5 +19,6 @@ export const authApi = {
   verifyEmail: (token: string) => apiClient.post('/api/auth/verify-email', { token }),
   resendVerification: (email: string) => apiClient.post('/api/auth/resend-verification', { email }),
   forgotPassword: (email: string) => apiClient.post('/api/auth/forgot-password', { email }),
-  resetPassword: (token: string, password: string) => apiClient.post('/api/auth/reset-password', { token, password }),
-}
+  resetPassword: (token: string, password: string) =>
+    apiClient.post('/api/auth/reset-password', { token, password }),
+};

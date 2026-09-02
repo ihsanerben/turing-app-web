@@ -1,3 +1,48 @@
-import {fireEvent,render,screen,waitFor}from'@testing-library/react';import{beforeEach,describe,expect,it,vi}from'vitest';import{StudentInterviewsPage}from'./StudentInterviewsPage';import{AdminInterviewsPage}from'./AdminInterviewsPage';import{interviewApi,type AdminInterview}from'./interviewApi';
-vi.mock('../auth/authContextValue',()=>({useAuth:()=>({user:{id:'admin-1'}})}));
-vi.mock('./interviewApi',()=>({interviewApi:{mine:vi.fn(),byApplication:vi.fn(),create:vi.fn(),update:vi.fn(),status:vi.fn(),feedback:vi.fn()}}));const admin:AdminInterview={id:'i1',applicationId:'a1',startsAt:'2026-09-03T10:00:00Z',endsAt:'2026-09-03T11:00:00Z',status:'COMPLETED',locationType:'ONLINE',location:null,meetingUrl:'https://meet.example/i1',createdBy:'Admin User',version:1,feedback:[]};describe('interview pages',()=>{beforeEach(()=>vi.clearAllMocks());it('shows student schedule without internal feedback',async()=>{vi.mocked(interviewApi.mine).mockResolvedValue([{...admin,programName:'Başarı Bursu',periodName:'2026'}]);render(<StudentInterviewsPage/>);expect(await screen.findByText('Başarı Bursu')).toBeInTheDocument();expect(screen.queryByText('Internal feedback')).not.toBeInTheDocument()});it('loads an application and exposes feedback only to admin',async()=>{vi.mocked(interviewApi.byApplication).mockResolvedValue([admin]);render(<AdminInterviewsPage/>);fireEvent.change(screen.getByLabelText('Başvuru ID'),{target:{value:'a1'}});fireEvent.click(screen.getByRole('button',{name:'Başvuruyu aç'}));await waitFor(()=>expect(interviewApi.byApplication).toHaveBeenCalledWith('a1'));expect(await screen.findByRole('heading',{name:'Internal feedback'})).toBeInTheDocument()})})
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { StudentInterviewsPage } from './StudentInterviewsPage';
+import { AdminInterviewsPage } from './AdminInterviewsPage';
+import { interviewApi, type AdminInterview } from './interviewApi';
+vi.mock('../auth/authContextValue', () => ({ useAuth: () => ({ user: { id: 'admin-1' } }) }));
+vi.mock('./interviewApi', () => ({
+  interviewApi: {
+    mine: vi.fn(),
+    byApplication: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    status: vi.fn(),
+    feedback: vi.fn(),
+  },
+}));
+const admin: AdminInterview = {
+  id: 'i1',
+  applicationId: 'a1',
+  startsAt: '2026-09-03T10:00:00Z',
+  endsAt: '2026-09-03T11:00:00Z',
+  status: 'COMPLETED',
+  locationType: 'ONLINE',
+  location: null,
+  meetingUrl: 'https://meet.example/i1',
+  createdBy: 'Admin User',
+  version: 1,
+  feedback: [],
+};
+describe('interview pages', () => {
+  beforeEach(() => vi.clearAllMocks());
+  it('shows student schedule without internal feedback', async () => {
+    vi.mocked(interviewApi.mine).mockResolvedValue([
+      { ...admin, programName: 'Başarı Bursu', periodName: '2026' },
+    ]);
+    render(<StudentInterviewsPage />);
+    expect(await screen.findByText('Başarı Bursu')).toBeInTheDocument();
+    expect(screen.queryByText('Internal feedback')).not.toBeInTheDocument();
+  });
+  it('loads an application and exposes feedback only to admin', async () => {
+    vi.mocked(interviewApi.byApplication).mockResolvedValue([admin]);
+    render(<AdminInterviewsPage />);
+    fireEvent.change(screen.getByLabelText('Başvuru ID'), { target: { value: 'a1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Başvuruyu aç' }));
+    await waitFor(() => expect(interviewApi.byApplication).toHaveBeenCalledWith('a1'));
+    expect(await screen.findByRole('heading', { name: 'Internal feedback' })).toBeInTheDocument();
+  });
+});
