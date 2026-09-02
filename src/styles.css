@@ -120,15 +120,90 @@ h1 {
   color: #3855cf;
 }
 
-.portal-nav {
-  position: fixed;
-  inset: 20px auto auto 24px;
+.student-shell {
+  min-height: 100vh;
+  background: #f4f7fb;
+}
+.student-header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
   display: flex;
-  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 72px;
+  padding: 12px clamp(20px, 4vw, 56px);
+  border-bottom: 1px solid #dce4ef;
+  background: rgb(255 255 255 / 94%);
+  backdrop-filter: blur(12px);
+}
+.student-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #172033;
+  font-weight: 800;
+  text-decoration: none;
+}
+.student-brand > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  color: #fff;
+  background: #3855cf;
+}
+.student-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #475569;
+  font-weight: 650;
+}
+.student-account button {
+  padding: 9px 13px;
+  border: 1px solid #c9d4e3;
+  border-radius: 9px;
+  color: #34435c;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.student-body {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  width: min(1440px, 100%);
+  margin: 0 auto;
+}
+.portal-nav {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  height: max-content;
+  padding: 32px 20px;
 }
 .portal-nav a {
-  color: #3855cf;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #475569;
   font-weight: 700;
+  text-decoration: none;
+}
+.portal-nav a:hover,
+.portal-nav a.active {
+  color: #2945b8;
+  background: #e8edff;
+}
+.student-content {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  padding: 0 clamp(20px, 4vw, 56px);
 }
 .profile-card {
   width: min(100%, 860px);
@@ -479,8 +554,193 @@ h1 {
 }
 .portal-workspace {
   width: min(960px, 100%);
-  margin-top: 50px;
+  margin-top: 42px;
   padding-bottom: 60px;
+}
+.dashboard-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(24px, 5vw, 44px);
+  border-radius: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, #233a9f, #4867e8);
+  box-shadow: 0 18px 45px rgb(35 58 159 / 20%);
+}
+.dashboard-hero h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+}
+.dashboard-hero p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 0;
+  color: #e8edff;
+  line-height: 1.6;
+}
+.dashboard-hero .eyebrow {
+  color: #cdd7ff;
+}
+.dashboard-hero .button-link {
+  flex: none;
+  color: #2945b8;
+  background: #fff;
+}
+.portal-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.portal-metrics article {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid #dce4ef;
+  border-radius: 14px;
+  background: #fff;
+}
+.portal-metrics span {
+  color: #64748b;
+  font-weight: 650;
+}
+.portal-metrics strong {
+  font-size: 2rem;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.dashboard-grid .management-card {
+  margin: 0;
+}
+.next-step-card {
+  grid-column: 1/-1;
+  align-items: start;
+  border-color: #b9c7ff;
+  background: #f8faff;
+}
+.next-step-card p {
+  margin: 0;
+}
+.next-step-card .button-link {
+  justify-self: start;
+}
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.section-heading a {
+  color: #3855cf;
+  font-weight: 700;
+}
+.application-summary,
+.dashboard-event {
+  display: grid;
+  gap: 12px;
+}
+.application-summary > div,
+.dashboard-event {
+  color: #64748b;
+}
+.application-summary > div {
+  display: grid;
+  gap: 4px;
+}
+.application-summary strong,
+.dashboard-event strong {
+  color: #172033;
+}
+.application-summary progress {
+  width: 100%;
+  accent-color: #3855cf;
+}
+.status-badge {
+  display: inline-flex;
+  width: max-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.status-badge--success {
+  color: #166534;
+  background: #dcfce7;
+}
+.status-badge--warning {
+  color: #92400e;
+  background: #fef3c7;
+}
+.status-badge--info {
+  color: #2945b8;
+  background: #e8edff;
+}
+.status-badge--neutral {
+  color: #475569;
+  background: #e2e8f0;
+}
+.dashboard-notifications {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dashboard-notifications li {
+  display: grid;
+  grid-template-columns: 9px 1fr;
+  align-items: start;
+  gap: 10px;
+}
+.dashboard-notifications li > span {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+}
+.dashboard-notifications .unread-dot {
+  background: #4867e8;
+}
+.dashboard-notifications div {
+  display: grid;
+  gap: 3px;
+}
+.dashboard-notifications time {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+@media (max-width: 850px) {
+  .student-body {
+    grid-template-columns: 1fr;
+  }
+  .portal-nav {
+    position: static;
+    grid-auto-columns: max-content;
+    grid-auto-flow: column;
+    overflow-x: auto;
+    padding: 14px 20px 0;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .student-header,
+  .dashboard-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-account {
+    justify-content: space-between;
+  }
+  .portal-metrics {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-hero .button-link {
+    width: 100%;
+  }
 }
 .application-list {
   display: grid;
@@ -502,6 +762,9 @@ h1 {
 .application-list span {
   color: #64748b;
 }
+.application-list .status-badge {
+  color: inherit;
+}
 .application-list progress,
 .application-form progress {
   width: 220px;
@@ -522,6 +785,33 @@ h1 {
 .application-form {
   display: grid;
   gap: 18px;
+}
+.application-result {
+  padding: 20px;
+  border: 1px solid;
+  border-radius: 14px;
+}
+.application-result h2,
+.application-result p {
+  margin: 0;
+}
+.application-result p {
+  margin-top: 8px;
+}
+.application-result--success {
+  border-color: #86efac;
+  color: #166534;
+  background: #f0fdf4;
+}
+.application-result--warning {
+  border-color: #fcd34d;
+  color: #92400e;
+  background: #fffbeb;
+}
+.application-result--neutral {
+  border-color: #cbd5e1;
+  color: #475569;
+  background: #f8fafc;
 }
 .application-form > fieldset {
   display: grid;

@@ -2,6 +2,11 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { applicationApi, type Application, type PublicScholarship } from './applicationApi';
+import {
+  applicationAction,
+  applicationStatusLabel,
+  applicationStatusTone,
+} from '../portal/portalPresentation';
 
 export function ApplicationListPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -72,7 +77,12 @@ export function ApplicationListPage() {
                 <div>
                   <strong>{value.programName}</strong>
                   <span>
-                    {value.periodName} · {value.status}
+                    {value.periodName} ·{' '}
+                    <span
+                      className={`status-badge status-badge--${applicationStatusTone(value.status)}`}
+                    >
+                      {applicationStatusLabel(value.status)}
+                    </span>
                   </span>
                   <progress
                     aria-label={`${value.programName} tamamlanma oranı`}
@@ -81,7 +91,7 @@ export function ApplicationListPage() {
                   />
                 </div>
                 <Link className="button-link" to={`/portal/applications/${value.id}/form`}>
-                  {value.status === 'DRAFT' ? 'Devam et' : 'Görüntüle'}
+                  {applicationAction(value)}
                 </Link>
               </article>
             ))}

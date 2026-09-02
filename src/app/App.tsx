@@ -15,6 +15,7 @@ import { StudentInterviewsPage } from '../features/interviews/StudentInterviewsP
 import { AdminEmailCampaignsPage } from '../features/notifications/AdminEmailCampaignsPage';
 import { NotificationsPage } from '../features/notifications/NotificationsPage';
 import { AdminContentPage } from '../features/publicContent/AdminContentPage';
+import { StudentDashboardPage } from '../features/portal/StudentDashboardPage';
 import {
   AboutPage,
   AnnouncementDetailPage,
@@ -56,7 +57,7 @@ export function App() {
         </Route>
         <Route element={<AuthGuard />}>
           <Route path="portal" element={<StudentLayout />}>
-            <Route index element={<Placeholder title="Öğrenci portalı" />} />
+            <Route index element={<StudentDashboardPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="applications" element={<ApplicationListPage />} />
             <Route path="applications/:id/form" element={<ApplicationFormPage />} />

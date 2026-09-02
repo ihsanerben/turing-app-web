@@ -45,7 +45,7 @@ describe('ApplicationListPage', () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole('heading', { name: 'Başvurularım' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Devam et' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Başvuruya devam et' })).toHaveAttribute(
       'href',
       '/portal/applications/app-1/form',
     );
