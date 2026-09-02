@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { interviewApi, type StudentInterview } from './interviewApi';
+import { interviewStatusLabel } from '../portal/portalPresentation';
 export function StudentInterviewsPage() {
   const [values, setValues] = useState<StudentInterview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,7 @@ export function StudentInterviewsPage() {
                 <div>
                   <strong>{v.programName}</strong>
                   <span>
-                    {v.periodName} · {v.status}
+                    {v.periodName} · {interviewStatusLabel(v.status)}
                   </span>
                 </div>
                 <div>

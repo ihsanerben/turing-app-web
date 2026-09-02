@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { FormField } from '../forms/formApi';
 import { documentApi, type DocumentRequirement, type StoredFile } from '../documents/documentApi';
 import { applicationApi, type ApplicationAnswer, type ApplicationForm } from './applicationApi';
+import { applicationStatusLabel, applicationStatusTone } from '../portal/portalPresentation';
 
 export function ApplicationFormPage() {
   const { id = '' } = useParams();
@@ -115,9 +116,13 @@ export function ApplicationFormPage() {
         <p className="eyebrow">{data.application.programName}</p>
         <h1>{data.form.name}</h1>
         <p>
-          {data.application.periodName} · Form v{data.form.versionNumber} ·{' '}
-          {data.application.status}
+          {data.application.periodName} · Form v{data.form.versionNumber}
         </p>
+        <span
+          className={`status-badge status-badge--${applicationStatusTone(data.application.status)}`}
+        >
+          {applicationStatusLabel(data.application.status)}
+        </span>
         <progress
           aria-label="Başvuru tamamlanma oranı"
           max="100"
@@ -133,6 +138,15 @@ export function ApplicationFormPage() {
         <p role="status" className="status status--success">
           {notice}
         </p>
+      )}
+      {decisionMessage(data.application.status) && (
+        <section
+          className={`application-result application-result--${applicationStatusTone(data.application.status)}`}
+          aria-label="Başvuru sonucu"
+        >
+          <h2>{applicationStatusLabel(data.application.status)}</h2>
+          <p>{decisionMessage(data.application.status)}</p>
+        </section>
       )}
       {data.form.sections.map((section) => (
         <fieldset key={section.id} disabled={!editable || busy}>
@@ -186,6 +200,15 @@ export function ApplicationFormPage() {
       </div>
     </section>
   );
+}
+
+function decisionMessage(status: ApplicationForm['application']['status']) {
+  if (status === 'APPROVED') return 'Başvurunuz olumlu sonuçlandı.';
+  if (status === 'REJECTED') return 'Başvurunuz bu dönem için olumsuz sonuçlandı.';
+  if (status === 'WAITLISTED') return 'Başvurunuz yedek listeye alındı.';
+  if (status === 'MISSING_DOCUMENT')
+    return 'Başvurunuzun yeniden incelenebilmesi için eksik belgeleri tamamlayın.';
+  return '';
 }
 
 function DocumentPanel({
