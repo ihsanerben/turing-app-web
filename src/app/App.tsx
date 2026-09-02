@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { NotFoundPage } from './NotFoundPage';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { StudentLayout } from '../layouts/StudentLayout';
@@ -80,7 +81,7 @@ export function App() {
             <Route path="audit" element={<AdminAuditPage />} />
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
