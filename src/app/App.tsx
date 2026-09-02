@@ -16,6 +16,8 @@ import { AdminEmailCampaignsPage } from '../features/notifications/AdminEmailCam
 import { NotificationsPage } from '../features/notifications/NotificationsPage';
 import { AdminContentPage } from '../features/publicContent/AdminContentPage';
 import { StudentDashboardPage } from '../features/portal/StudentDashboardPage';
+import { AdminDashboardPage } from '../features/adminPortal/AdminDashboardPage';
+import { AdminAuditPage } from '../features/audit/AdminAuditPage';
 import {
   AboutPage,
   AnnouncementDetailPage,
@@ -67,7 +69,7 @@ export function App() {
         </Route>
         <Route element={<AuthGuard role="ADMIN" />}>
           <Route path="admin" element={<AdminLayout />}>
-            <Route index element={<Placeholder title="Admin portalı" />} />
+            <Route index element={<AdminDashboardPage />} />
             <Route path="applications" element={<AdminApplicationsPage />} />
             <Route path="programs" element={<ScholarshipAdminPage />} />
             <Route path="forms/:periodId" element={<FormBuilderPage />} />
@@ -75,20 +77,11 @@ export function App() {
             <Route path="interviews" element={<AdminInterviewsPage />} />
             <Route path="email" element={<AdminEmailCampaignsPage />} />
             <Route path="content" element={<AdminContentPage />} />
+            <Route path="audit" element={<AdminAuditPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  );
-}
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <section className="card">
-      <p className="eyebrow">Turing Scholarship</p>
-      <h1>{title}</h1>
-      <p>Bu alan ilgili geliştirme aşamasında hazırlanacak.</p>
-    </section>
   );
 }
