@@ -4,12 +4,10 @@ export type AdminStatistics = {
   registeredCandidates: number;
   candidatesWithApplication: number;
   totalApplications: number;
-  draftApplications: number;
-  submittedApplications: number;
-  applicationsUnderReview: number;
+  pendingApplications: number;
+  missingDocumentApplications: number;
   approvedApplications: number;
   rejectedApplications: number;
-  waitlistedApplications: number;
   averageCompletion: number;
   activePrograms: number;
   scheduledPeriods: number;

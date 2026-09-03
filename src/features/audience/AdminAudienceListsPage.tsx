@@ -6,16 +6,16 @@ import {
   type AdminApplication,
 } from '../adminApplications/adminApplicationApi';
 import type { ApplicationStatus } from '../applications/applicationApi';
+import { applicationStatusGroup, applicationStatusLabel } from '../portal/portalPresentation';
 import { scholarshipApi, type Program } from '../scholarship/scholarshipApi';
 import { audienceListApi, type AudienceList } from './audienceListApi';
 
 const statuses: { value: ApplicationStatus | ''; label: string }[] = [
   { value: '', label: 'Tüm başvurular' },
+  { value: 'SUBMITTED', label: 'Beklemede' },
+  { value: 'MISSING_DOCUMENT', label: 'Eksik belge' },
   { value: 'APPROVED', label: 'Olumlu' },
-  { value: 'SHORTLISTED', label: 'Kısa listede' },
-  { value: 'INTERVIEW', label: 'Mülakat aşamasında' },
   { value: 'REJECTED', label: 'Olumsuz' },
-  { value: 'SUBMITTED', label: 'Gönderildi' },
 ];
 export function AdminAudienceListsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -64,7 +64,9 @@ export function AdminAudienceListsPage() {
     setEditingMembers(new Set(list.members.map((value) => value.applicationId)));
     if (programId !== list.programId) await chooseProgram(list.programId);
   }
-  const visible = applications.filter((value) => !status || value.status === status);
+  const visible = applications.filter(
+    (value) => !status || applicationStatusGroup(value.status) === status,
+  );
   function toggle(id: string) {
     setSelected((current) => {
       const next = new Set(current);
@@ -169,9 +171,7 @@ export function AdminAudienceListsPage() {
                   </span>
                   <span>{value.university ?? '—'}</span>
                   <span>{value.department ?? '—'}</span>
-                  <span>
-                    {statuses.find((item) => item.value === value.status)?.label ?? value.status}
-                  </span>
+                  <span>{applicationStatusLabel(value.status)}</span>
                 </label>
               ))}
             </div>
@@ -233,9 +233,7 @@ export function AdminAudienceListsPage() {
                 <span>{value.studentEmail}</span>
                 <span>{value.university ?? '—'}</span>
                 <span>{value.department ?? '—'}</span>
-                <span>
-                  {statuses.find((item) => item.value === value.status)?.label ?? value.status}
-                </span>
+                <span>{applicationStatusLabel(value.status)}</span>
               </label>
             ))}
           </div>

@@ -2,16 +2,16 @@ import type { Application, ApplicationStatus } from '../applications/application
 import type { InterviewStatus } from '../interviews/interviewApi';
 
 const applicationStatusLabels: Record<ApplicationStatus, string> = {
-  DRAFT: 'Taslak',
-  SUBMITTED: 'Gönderildi',
-  UNDER_REVIEW: 'İnceleniyor',
-  MISSING_DOCUMENT: 'Belge bekleniyor',
-  SHORTLISTED: 'Ön değerlendirmeyi geçti',
-  INTERVIEW: 'Mülakat aşamasında',
-  APPROVED: 'Onaylandı',
-  REJECTED: 'Olumsuz sonuçlandı',
-  WAITLISTED: 'Yedek listede',
-  WITHDRAWN: 'Geri çekildi',
+  DRAFT: 'Beklemede',
+  SUBMITTED: 'Beklemede',
+  UNDER_REVIEW: 'Beklemede',
+  MISSING_DOCUMENT: 'Eksik belge',
+  SHORTLISTED: 'Beklemede',
+  INTERVIEW: 'Beklemede',
+  APPROVED: 'Olumlu',
+  REJECTED: 'Olumsuz',
+  WAITLISTED: 'Beklemede',
+  WITHDRAWN: 'Olumsuz',
 };
 
 const interviewStatusLabels: Record<InterviewStatus, string> = {
@@ -42,4 +42,11 @@ export function applicationStatusTone(status: ApplicationStatus) {
   if (status === 'REJECTED' || status === 'WITHDRAWN') return 'neutral';
   if (status === 'MISSING_DOCUMENT') return 'warning';
   return 'info';
+}
+
+export function applicationStatusGroup(status: ApplicationStatus) {
+  if (status === 'APPROVED') return 'APPROVED';
+  if (status === 'REJECTED' || status === 'WITHDRAWN') return 'REJECTED';
+  if (status === 'MISSING_DOCUMENT') return 'MISSING_DOCUMENT';
+  return 'SUBMITTED';
 }

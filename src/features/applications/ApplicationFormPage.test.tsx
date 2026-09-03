@@ -60,11 +60,26 @@ describe('ApplicationFormPage', () => {
                 validationRules: { minLength: 10 },
                 options: [],
               },
+              {
+                id: 'field-2',
+                key: 'has_vehicle',
+                label: 'Aracınız var mı?',
+                type: 'BOOLEAN',
+                required: true,
+                order: 1,
+                placeholder: null,
+                requirementId: null,
+                validationRules: {},
+                options: [],
+              },
             ],
           },
         ],
       },
-      answers: [{ fieldId: 'field-1', value: 'Topluma katkı' }],
+      answers: [
+        { fieldId: 'field-1', value: 'Topluma katkı' },
+        { fieldId: 'field-2', value: true },
+      ],
     });
     vi.mocked(documentApi.requirements).mockResolvedValue([]);
     vi.mocked(documentApi.files).mockResolvedValue([]);
@@ -77,7 +92,9 @@ describe('ApplicationFormPage', () => {
     );
     expect(await screen.findByRole('heading', { name: 'Başvuru Formu' })).toBeInTheDocument();
     expect(screen.getByLabelText('Motivasyon *')).toHaveValue('Topluma katkı');
-    expect(screen.getByRole('button', { name: 'Kaydet ve gönder' })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: 'Evet' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Hayır' })).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Kaydet' })).toBeEnabled();
   });
 
   it('allows a submitted application to be edited', async () => {
@@ -139,6 +156,6 @@ describe('ApplicationFormPage', () => {
     );
 
     expect(await screen.findByLabelText('Motivasyon *')).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Başvurumu güncelle' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Güncelle' })).toBeEnabled();
   });
 });

@@ -3,6 +3,9 @@
   --color-create: #16834a;
   --color-update: #d97706;
   --color-delete: #c62828;
+  --color-surface: #ffffff;
+  --color-border: #d9e2ef;
+  --shadow-card: 0 10px 30px rgb(30 47 82 / 8%);
   font-family:
     Inter,
     system-ui,
@@ -594,7 +597,7 @@ a:hover,
 }
 
 body.modal-open {
-  overflow: hidden;
+  overflow-y: scroll;
 }
 .modal-backdrop {
   position: fixed;
@@ -613,6 +616,7 @@ body.modal-open {
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 30px 80px rgb(15 23 42 / 35%);
+  animation: modal-enter 180ms ease-out;
 }
 .modal-header {
   position: sticky;
@@ -642,6 +646,12 @@ body.modal-open {
   display: grid;
   gap: 18px;
   padding: 24px;
+}
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
 }
 .application-detail > p:first-child {
   margin-top: 0;
@@ -1713,6 +1723,12 @@ table small {
 .management-list-item:hover {
   border-color: var(--color-primary);
   background: #eef2ff;
+  color: #172033;
+  filter: none;
+}
+.management-list-item:hover strong,
+.management-list-item:hover small {
+  color: inherit;
 }
 .management-list-item span,
 .record-summary {
@@ -1740,6 +1756,21 @@ table small {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+.interview-status-card {
+  gap: 18px;
+}
+.interview-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.interview-status-actions button {
+  min-width: 132px;
 }
 .interview-list {
   display: grid;
@@ -1782,26 +1813,52 @@ table small {
 }
 .email-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+.email-composer {
+  width: min(820px, 100%);
+}
+.campaign-history {
+  display: grid;
+  gap: 16px;
 }
 .campaign-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .campaign-list button {
   display: grid;
-  gap: 5px;
+  gap: 7px;
+  width: 100%;
+  padding: 16px 18px;
   text-align: left;
   background: #f8fafc;
   color: #172033;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.campaign-list button:hover {
+  border-color: var(--color-primary);
+  background: #eef2ff;
+  transform: translateY(-1px);
 }
 .campaign-list span {
   color: #64748b;
 }
 .campaign-detail {
+  display: grid;
+  gap: 16px;
   overflow-x: auto;
+}
+.campaign-detail table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.campaign-detail th,
+.campaign-detail td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
 }
 .notification-list article {
   display: flex;
@@ -2014,5 +2071,165 @@ table small {
 @media (max-width: 900px) {
   .draft-item {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Ortak etkileşim ve modal görünümü */
+.student-content > * {
+  width: min(1100px, 100%);
+}
+
+button.action-create,
+button.action-update,
+button.action-save,
+button.danger {
+  min-height: 42px;
+  padding: 10px 17px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  box-shadow: 0 5px 14px rgb(30 47 82 / 12%);
+}
+
+button.action-create {
+  border-color: var(--color-create);
+  background: var(--color-create);
+}
+
+button.action-update {
+  border-color: var(--color-update);
+  background: var(--color-update);
+}
+
+button.action-save {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.boolean-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.boolean-choice legend {
+  padding: 0 7px;
+  font-weight: 700;
+}
+
+.boolean-choice label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.boolean-choice label.is-selected {
+  border-color: var(--color-primary);
+  color: #2945b8;
+  background: #eef2ff;
+}
+
+.modal-backdrop {
+  overflow-y: auto;
+}
+
+.modal-panel {
+  border: 1px solid rgb(255 255 255 / 45%);
+}
+
+.modal-content > section,
+.modal-detail {
+  display: grid;
+  gap: 18px;
+}
+
+.modal-detail h3 {
+  margin: 8px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  color: #273550;
+}
+
+.modal-detail > ul li {
+  border: 1px solid #e4eaf3;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.modal-form {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #f8fafc;
+  box-shadow: var(--shadow-card);
+}
+
+.modal-form label {
+  display: grid;
+  gap: 7px;
+  color: #34435c;
+  font-weight: 700;
+}
+
+.modal-form textarea,
+.modal-form select,
+.modal-form input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #c9d4e3;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.modal-form textarea:focus,
+.modal-form select:focus,
+.modal-form input:focus {
+  outline: 3px solid rgb(56 85 207 / 16%);
+  border-color: var(--color-primary);
+}
+
+.modal-form button {
+  justify-self: end;
+}
+
+.modal-content > label {
+  display: grid;
+  gap: 7px;
+  color: #34435c;
+  font-weight: 700;
+}
+
+.modal-content > label input,
+.modal-content > label select,
+.modal-content > label textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #c9d4e3;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

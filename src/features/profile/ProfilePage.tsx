@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
 import { profileApi, type Department, type Profile, type University } from './profileApi';
+import { TurkishDateInput } from '../../components/TurkishDateInput';
 
 const educationLevels = [
   ['HIGH_SCHOOL', 'Lise'],
@@ -21,7 +22,7 @@ export function ProfilePage() {
   useEffect(() => {
     Promise.all([profileApi.get(), profileApi.universities()])
       .then(([value, refs]) => {
-        setProfile(value);
+        setProfile({ ...value, birthDate: displayDate(value.birthDate) });
         setUniversities(refs);
       })
       .catch(() => setError('Profil yüklenemedi.'));
@@ -40,8 +41,8 @@ export function ProfilePage() {
     setMessage('');
     setError('');
     try {
-      const saved = await profileApi.update(profile);
-      setProfile(saved);
+      const saved = await profileApi.update({ ...profile, birthDate: apiDate(profile.birthDate) });
+      setProfile({ ...saved, birthDate: displayDate(saved.birthDate) });
       setMessage('Profilin kaydedildi.');
     } catch (reason) {
       setError(
@@ -73,12 +74,14 @@ export function ProfilePage() {
             value={profile.nationalId}
             onChange={(v) => change('nationalId', v?.replace(/\D/g, '').slice(0, 11) ?? null)}
           />
-          <Field
-            label="Doğum tarihi"
-            type="date"
-            value={profile.birthDate}
-            onChange={(v) => change('birthDate', v)}
-          />
+          <label>
+            Doğum tarihi
+            <TurkishDateInput
+              id="birth-date"
+              value={profile.birthDate ?? ''}
+              onChange={(value) => change('birthDate', value || null)}
+            />
+          </label>
           <Field
             label="Telefon"
             type="tel"
@@ -188,6 +191,18 @@ export function ProfilePage() {
       </form>
     </section>
   );
+}
+
+function displayDate(value: string | null) {
+  if (!value) return null;
+  const [year, month, day] = value.split('-');
+  return year && month && day ? `${day}/${month}/${year}` : value;
+}
+
+function apiDate(value: string | null) {
+  if (!value) return null;
+  const [day, month, year] = value.split('/');
+  return day && month && year ? `${year}-${month}-${day}` : value;
 }
 
 function Field({

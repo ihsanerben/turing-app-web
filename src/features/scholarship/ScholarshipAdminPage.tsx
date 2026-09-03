@@ -6,6 +6,7 @@ import { readTurkishDateTime } from '../../components/turkishDateTime';
 import { scholarshipApi, type Period, type Program } from './scholarshipApi';
 import { formApi, type FieldType, type FormField } from '../forms/formApi';
 import { documentApi } from '../documents/documentApi';
+import { toSlug } from '../../components/slug';
 
 export function ScholarshipAdminPage() {
   const [loadedAt] = useState(() => Date.now());
@@ -344,7 +345,7 @@ export function ScholarshipAdminPage() {
             if (!slugEdited) setProgramSlug(toSlug(value));
           }}
           onSlugChange={(value) => {
-            setProgramSlug(value);
+            setProgramSlug(toSlug(value));
             setSlugEdited(true);
           }}
           onSubmit={createProgram}
@@ -379,7 +380,15 @@ export function ScholarshipAdminPage() {
           </label>
           <label>
             URL adı
-            <input name="slug" required defaultValue={currentProgram.slug} />
+            <input
+              name="slug"
+              required
+              pattern="[a-z0-9]+(-[a-z0-9]+)*"
+              defaultValue={currentProgram.slug}
+              onBlur={(event) => {
+                event.currentTarget.value = toSlug(event.currentTarget.value);
+              }}
+            />
           </label>
           <label>
             Açıklama
@@ -416,7 +425,7 @@ export function ScholarshipAdminPage() {
                 Kontenjan
                 <input name="maxRecipients" type="number" min={1} />
               </label>
-              <button>Yeni dönem ekle</button>
+              <button className="action-create">Yeni dönem ekle</button>
             </form>
           )}
           {selectedPeriod && (
@@ -460,6 +469,11 @@ export function ScholarshipAdminPage() {
                 onBeforeSave={saveProgramDetails}
                 onAfterPublish={publishProgram}
                 active={currentPeriod?.status === 'OPEN' || currentPeriod?.status === 'SCHEDULED'}
+                finished={
+                  currentPeriod?.status === 'CLOSED' ||
+                  currentPeriod?.status === 'COMPLETED' ||
+                  currentPeriod?.status === 'ARCHIVED'
+                }
                 onFinish={finishProgram}
               />
             </>
@@ -468,19 +482,6 @@ export function ScholarshipAdminPage() {
       )}
     </section>
   );
-}
-
-function toSlug(value: string) {
-  return value
-    .toLocaleLowerCase('tr-TR')
-    .replaceAll('ı', 'i')
-    .replaceAll('ğ', 'g')
-    .replaceAll('ü', 'u')
-    .replaceAll('ş', 's')
-    .replaceAll('ö', 'o')
-    .replaceAll('ç', 'c')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }
 
 function academicYear(date: Date) {
@@ -550,6 +551,13 @@ function NewProgramEditor({
     { label: '', type: 'TEXT', required: false, placeholder: '' },
   ]);
   const [documents, setDocuments] = useState<DraftDocument[]>([]);
+  const [defaultDates] = useState(() => {
+    const startsAt = new Date();
+    startsAt.setSeconds(0, 0);
+    const endsAt = new Date(startsAt);
+    endsAt.setDate(endsAt.getDate() + 30);
+    return { startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() };
+  });
 
   return (
     <form
@@ -592,8 +600,12 @@ function NewProgramEditor({
       </section>
       <section className="management-card period-form">
         <h2>2. Tarihler</h2>
-        <TurkishDateTimeInput name="startsAt" label="Başlangıç" />
-        <TurkishDateTimeInput name="endsAt" label="Bitiş" />
+        <TurkishDateTimeInput
+          name="startsAt"
+          label="Başlangıç"
+          defaultValue={defaultDates.startsAt}
+        />
+        <TurkishDateTimeInput name="endsAt" label="Bitiş" defaultValue={defaultDates.endsAt} />
         <label>
           Kontenjan
           <input name="maxRecipients" type="number" min={1} />

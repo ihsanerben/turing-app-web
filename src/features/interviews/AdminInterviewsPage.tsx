@@ -279,11 +279,16 @@ export function AdminInterviewsPage() {
             </button>
           </form>
           {selected && (
-            <section className="management-card">
+            <section className="management-card interview-status-card">
               <h2>Durum: {statusLabels[selected.status]}</h2>
-              <div className="form-actions">
+              <div className="interview-status-actions">
                 {transitions[selected.status]?.map((item) => (
-                  <button key={item.status} onClick={() => void change(item.status)}>
+                  <button
+                    type="button"
+                    className={statusActionClass(item.status)}
+                    key={item.status}
+                    onClick={() => void change(item.status)}
+                  >
                     {item.label}
                   </button>
                 ))}
@@ -312,7 +317,7 @@ export function AdminInterviewsPage() {
                       defaultValue={ownFeedback?.recommendation ?? ''}
                     />
                   </label>
-                  <button>Notu kaydet</button>
+                  <button className="action-save">Notu kaydet</button>
                 </form>
               )}
             </section>
@@ -324,4 +329,10 @@ export function AdminInterviewsPage() {
 }
 function message(error: unknown) {
   return apiErrorMessage(error, 'Mülakat işlemi tamamlanamadı.');
+}
+
+function statusActionClass(status: InterviewStatus) {
+  if (status === 'COMPLETED' || status === 'SCHEDULED') return 'action-create';
+  if (status === 'CANCELLED') return 'danger';
+  return 'action-update';
 }

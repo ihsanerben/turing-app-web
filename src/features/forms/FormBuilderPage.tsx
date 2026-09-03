@@ -65,6 +65,7 @@ export function FormBuilderPage({
   onBeforeSave,
   onAfterPublish,
   active = false,
+  finished = false,
   onFinish,
 }: {
   periodIdOverride?: string;
@@ -72,6 +73,7 @@ export function FormBuilderPage({
   onBeforeSave?: () => Promise<void>;
   onAfterPublish?: () => Promise<void>;
   active?: boolean;
+  finished?: boolean;
   onFinish?: () => Promise<void>;
 } = {}) {
   const params = useParams();
@@ -90,14 +92,11 @@ export function FormBuilderPage({
       .then(async ([values, documentRequirements]) => {
         const draft = values.find((value) => value.status === 'DRAFT');
         const base = draft ?? values[0];
-        let selected = base
+        const selected = base
           ? await formApi.get(base.id)
           : embedded
             ? await formApi.create(periodId, 'Başvuru Formu')
             : null;
-        if (embedded && selected && selected.status !== 'DRAFT') {
-          selected = await formApi.newVersion(selected);
-        }
         return {
           values: values.length === 0 && selected ? [selected] : values,
           documentRequirements,
@@ -247,7 +246,9 @@ export function FormBuilderPage({
       const updated = await formApi.save(prepared);
       setForm(updated);
       updateVersionSummary(updated);
-      setNotice('Taslak kaydedildi.');
+      setNotice(
+        form.status === 'PUBLISHED' ? 'Yayındaki program güncellendi.' : 'Taslak kaydedildi.',
+      );
     } catch (e) {
       setError(apiErrorMessage(e, 'Taslak kaydedilemedi.'));
     } finally {
@@ -268,39 +269,13 @@ export function FormBuilderPage({
     try {
       await onBeforeSave?.();
       const saved = await formApi.save(prepared);
-      const published = await formApi.publish(saved);
+      const published = saved.status === 'PUBLISHED' ? saved : await formApi.publish(saved);
       await onAfterPublish?.();
-      if (embedded) {
-        const nextDraft = await formApi.newVersion(published);
-        setForm(nextDraft);
-        setVersions([
-          nextDraft,
-          published,
-          ...versions.filter((value) => value.id !== published.id),
-        ]);
-      } else {
-        setForm(published);
-        updateVersionSummary(published);
-      }
+      setForm(published);
+      updateVersionSummary(published);
       setNotice('Program bilgileri kaydedildi ve başvuru formu yayınlandı.');
     } catch (e) {
       setError(apiErrorMessage(e, 'Form yayınlanamadı.'));
-    } finally {
-      setSaving(false);
-    }
-  }
-  async function newVersion() {
-    if (!form) return;
-    setSaving(true);
-    setError('');
-    setNotice('');
-    try {
-      const updated = await formApi.newVersion(form);
-      setForm(updated);
-      setVersions((values) => [updated, ...values]);
-      setNotice('Yeni taslak versiyon oluşturuldu.');
-    } catch (e) {
-      setError(apiErrorMessage(e, 'Yeni form sürümü oluşturulamadı.'));
     } finally {
       setSaving(false);
     }
@@ -434,7 +409,7 @@ export function FormBuilderPage({
                   <span className="inline-actions">
                     <button
                       type="button"
-                      className="secondary"
+                      className="action-update"
                       onClick={(event) => {
                         event.stopPropagation();
                         setEditingRequirement(value);
@@ -487,13 +462,13 @@ export function FormBuilderPage({
                 {formStatusLabels[form.status]}
               </span>
             )}
-            {active && form.status === 'DRAFT' ? (
+            {finished ? null : active ? (
               <>
                 <button
                   type="button"
                   className="action-update"
                   disabled={saving}
-                  onClick={() => void publish()}
+                  onClick={() => void save()}
                 >
                   Güncelle
                 </button>
@@ -525,16 +500,13 @@ export function FormBuilderPage({
                   Yayınla
                 </button>
               </>
-            ) : (
-              <button
-                disabled={saving || versions.some((value) => value.status === 'DRAFT')}
-                onClick={() => void newVersion()}
-              >
-                Yeni versiyon oluştur
+            ) : form.status === 'PUBLISHED' ? (
+              <button className="action-update" disabled={saving} onClick={() => void save()}>
+                Güncelle
               </button>
-            )}
+            ) : null}
           </div>
-          {form.status === 'DRAFT' ? (
+          {form.status !== 'RETIRED' ? (
             <div className="builder-content">
               <h2>3. Sorulacak sorular</h2>
               <label className="form-name-field">
@@ -794,7 +766,7 @@ function OptionEditor({
         </div>
       ))}
       <button
-        className="secondary"
+        className="action-create"
         onClick={() => onChange([...field.options, { label: '', value: '' }])}
       >
         Seçenek ekle

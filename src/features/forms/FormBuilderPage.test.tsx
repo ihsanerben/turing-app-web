@@ -58,17 +58,17 @@ const published: FormDefinition = {
     },
   ],
 };
-function renderPage() {
+function renderPage(finished = false) {
   return render(
     <MemoryRouter initialEntries={['/admin/forms/period-1']}>
       <Routes>
-        <Route path="/admin/forms/:periodId" element={<FormBuilderPage />} />
+        <Route path="/admin/forms/:periodId" element={<FormBuilderPage finished={finished} />} />
       </Routes>
     </MemoryRouter>,
   );
 }
 describe('FormBuilderPage', () => {
-  it('shows immutable published schema and version action', async () => {
+  it('allows a published schema to be updated in place', async () => {
     vi.mocked(formApi.list).mockResolvedValue([published]);
     vi.mocked(formApi.get).mockResolvedValue(published);
     vi.mocked(documentApi.adminRequirements).mockResolvedValue([]);
@@ -76,8 +76,19 @@ describe('FormBuilderPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Başvuru formunu hazırla' }),
     ).toBeInTheDocument();
-    expect(await screen.findByText('Aile geliri *')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Yeni versiyon oluştur' })).toBeEnabled();
+    expect(await screen.findByDisplayValue('Aile geliri')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Güncelle' })).toBeEnabled();
+  });
+
+  it('does not offer mutation actions for a finished program', async () => {
+    vi.mocked(formApi.list).mockResolvedValue([published]);
+    vi.mocked(formApi.get).mockResolvedValue(published);
+    vi.mocked(documentApi.adminRequirements).mockResolvedValue([]);
+    renderPage(true);
+
+    expect(await screen.findByDisplayValue('Aile geliri')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Güncelle' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Yayınla' })).not.toBeInTheDocument();
   });
 
   it('keeps a successfully created document requirement without reloading the list', async () => {

@@ -137,7 +137,7 @@ export function AdminAppConfigPanel() {
           onChange={(event) => change('maintenanceNotice', event.target.value || null)}
         />
       </label>
-      <button type="submit" disabled={saving}>
+      <button className="action-save" type="submit" disabled={saving}>
         {saving ? 'Kaydediliyor…' : 'Ayarları kaydet'}
       </button>
       {message ? (
