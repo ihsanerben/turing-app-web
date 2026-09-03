@@ -18,6 +18,16 @@ export function readTurkishDateTime(data: FormData, name: string) {
   return value.toISOString();
 }
 
+export function maskTurkishDate(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join('/');
+}
+
+export function maskTurkishTime(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+  return [digits.slice(0, 2), digits.slice(2, 4)].filter(Boolean).join(':');
+}
+
 export function formatTurkishDateTime(value: string) {
   const date = new Date(value);
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;

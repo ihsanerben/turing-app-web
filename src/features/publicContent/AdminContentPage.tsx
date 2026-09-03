@@ -3,6 +3,7 @@ import { apiErrorMessage } from '../../api/apiErrorMessage';
 import { adminContentApi } from './adminContentApi';
 import type { Announcement } from './publicContentApi';
 import { AdminAppConfigPanel } from '../appConfig/AdminAppConfigPanel';
+import { toSlug } from '../../components/slug';
 export function AdminContentPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -95,19 +96,7 @@ export function AdminContentPage() {
           onSubmit={saveAnnouncement}
         >
           <h2>{editingAnnouncement ? 'Duyuruyu düzenle' : 'Yeni duyuru'}</h2>
-          <label>
-            Başlık
-            <input name="title" defaultValue={editingAnnouncement?.title ?? ''} required />
-          </label>
-          <label>
-            URL adı
-            <input
-              name="slug"
-              pattern="[a-z0-9]+(-[a-z0-9]+)*"
-              defaultValue={editingAnnouncement?.slug ?? ''}
-              required
-            />
-          </label>
+          <AnnouncementIdentityFields announcement={editingAnnouncement} />
           <label>
             Özet
             <textarea name="summary" defaultValue={editingAnnouncement?.summary ?? ''} required />
@@ -148,10 +137,15 @@ export function AdminContentPage() {
               <div>
                 {v.status === 'DRAFT' && (
                   <>
-                    <button className="secondary" onClick={() => setEditingAnnouncement(v)}>
+                    <button className="action-update" onClick={() => setEditingAnnouncement(v)}>
                       Düzenle
                     </button>
-                    <button onClick={() => void announcementAction(v, 'publish')}>Yayınla</button>
+                    <button
+                      className="action-create"
+                      onClick={() => void announcementAction(v, 'publish')}
+                    >
+                      Yayınla
+                    </button>
                   </>
                 )}
                 {v.status !== 'ARCHIVED' && (
@@ -180,7 +174,7 @@ export function AdminContentPage() {
               <span>Arşivde</span>
             </div>
             <div>
-              <button className="secondary" onClick={() => void restore(v)}>
+              <button className="action-update" onClick={() => void restore(v)}>
                 Arşivden çıkar ve düzenle
               </button>
               <button className="danger" onClick={() => void remove(v)}>
@@ -195,4 +189,41 @@ export function AdminContentPage() {
 }
 function message(e: unknown) {
   return apiErrorMessage(e, 'İçerik işlemi tamamlanamadı.');
+}
+
+function AnnouncementIdentityFields({ announcement }: { announcement: Announcement | null }) {
+  const [title, setTitle] = useState(announcement?.title ?? '');
+  const [slug, setSlug] = useState(announcement?.slug ?? '');
+  const [slugEdited, setSlugEdited] = useState(Boolean(announcement));
+  return (
+    <>
+      <label>
+        Başlık
+        <input
+          name="title"
+          value={title}
+          onChange={(event) => {
+            const value = event.target.value;
+            setTitle(value);
+            if (!slugEdited) setSlug(toSlug(value));
+          }}
+          required
+        />
+      </label>
+      <label>
+        URL adı
+        <input
+          name="slug"
+          pattern="[a-z0-9]+(-[a-z0-9]+)*"
+          value={slug}
+          onChange={(event) => {
+            setSlug(toSlug(event.target.value));
+            setSlugEdited(true);
+          }}
+          required
+        />
+        <small>Başlıktan otomatik hazırlanır; gerekirse değiştirebilirsiniz.</small>
+      </label>
+    </>
+  );
 }

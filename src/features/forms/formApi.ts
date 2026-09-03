@@ -62,9 +62,11 @@ export const formApi = {
         version: form.version,
         name: form.name,
         sections: form.sections.map((section) => ({
+          id: section.id,
           title: section.title,
           description: section.description,
           fields: section.fields.map((field) => ({
+            id: field.id,
             key: field.key,
             label: field.label,
             type: field.type,
@@ -72,7 +74,11 @@ export const formApi = {
             placeholder: field.placeholder,
             requirementId: field.requirementId,
             validationRules: field.validationRules,
-            options: field.options.map((option) => ({ label: option.label, value: option.value })),
+            options: field.options.map((option) => ({
+              id: option.id,
+              label: option.label,
+              value: option.value,
+            })),
           })),
         })),
       })

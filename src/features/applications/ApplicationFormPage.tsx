@@ -5,6 +5,7 @@ import type { FormField } from '../forms/formApi';
 import { documentApi, type DocumentRequirement, type StoredFile } from '../documents/documentApi';
 import { applicationApi, type ApplicationAnswer, type ApplicationForm } from './applicationApi';
 import { applicationStatusLabel, applicationStatusTone } from '../portal/portalPresentation';
+import { TurkishDateInput } from '../../components/TurkishDateInput';
 
 export function ApplicationFormPage() {
   const { id = '' } = useParams();
@@ -24,8 +25,17 @@ export function ApplicationFormPage() {
           setData(value);
           setRequirements(documentRequirements);
           setFiles(storedFiles);
+          const fields = value.form.sections.flatMap((section) => section.fields);
           setValues(
-            Object.fromEntries(value.answers.map((answer) => [answer.fieldId, answer.value])),
+            Object.fromEntries(
+              value.answers.map((answer) => {
+                const field = fields.find((item) => item.id === answer.fieldId);
+                return [
+                  answer.fieldId,
+                  field?.type === 'DATE' ? displayDate(String(answer.value)) : answer.value,
+                ];
+              }),
+            ),
           );
           setLoading(false);
         }
@@ -49,7 +59,12 @@ export function ApplicationFormPage() {
           value !== undefined &&
           (!Array.isArray(value) || value.length > 0),
       )
-      .map(([fieldId, value]) => ({ fieldId, value }));
+      .map(([fieldId, value]) => {
+        const field = data?.form.sections
+          .flatMap((section) => section.fields)
+          .find((item) => item.id === fieldId);
+        return { fieldId, value: field?.type === 'DATE' ? apiDate(String(value)) : value };
+      });
   }
   async function save() {
     if (!data) return null;
@@ -87,19 +102,6 @@ export function ApplicationFormPage() {
             ? 'Başvurunuz güncellendi.'
             : 'Başvurunuz gönderildi.',
       );
-    } catch (value) {
-      setError(message(value));
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function withdraw() {
-    if (!data) return;
-    setBusy(true);
-    try {
-      const application = await applicationApi.withdraw(data.application);
-      setData({ ...data, application });
-      setNotice('Başvuru geri çekildi.');
     } catch (value) {
       setError(message(value));
     } finally {
@@ -184,28 +186,12 @@ export function ApplicationFormPage() {
           Listeye dön
         </Link>
         {editable && (
-          <>
-            <button className="action-save" disabled={busy} onClick={() => void save()}>
-              Taslağı kaydet
-            </button>
-            <button className="action-create" disabled={busy} onClick={() => void submit()}>
-              Kaydet ve gönder
-            </button>
-          </>
-        )}
-        {data.application.status === 'MISSING_DOCUMENT' && (
-          <button disabled={busy} onClick={() => void submit()}>
-            Başvurumu güncelle ve yeniden gönder
-          </button>
-        )}
-        {data.application.status === 'SUBMITTED' && (
-          <button className="action-save" disabled={busy} onClick={() => void submit()}>
-            Başvurumu güncelle
-          </button>
-        )}
-        {(data.application.status === 'DRAFT' || data.application.status === 'SUBMITTED') && (
-          <button className="danger" disabled={busy} onClick={() => void withdraw()}>
-            Başvuruyu geri çek
+          <button
+            className={data.application.status === 'DRAFT' ? 'action-save' : 'action-update'}
+            disabled={busy}
+            onClick={() => void submit()}
+          >
+            {data.application.status === 'DRAFT' ? 'Kaydet' : 'Güncelle'}
           </button>
         )}
       </div>
@@ -407,7 +393,29 @@ function DynamicField({
         ))}
       </fieldset>
     );
-  if (field.type === 'BOOLEAN' || field.type === 'CHECKBOX')
+  if (field.type === 'BOOLEAN')
+    return (
+      <fieldset className="boolean-choice">
+        <legend>
+          {field.label}
+          {field.required ? ' *' : ''}
+        </legend>
+        <label className={value === true ? 'is-selected' : ''}>
+          <input type="radio" name={id} checked={value === true} onChange={() => onChange(true)} />
+          Evet
+        </label>
+        <label className={value === false ? 'is-selected' : ''}>
+          <input
+            type="radio"
+            name={id}
+            checked={value === false}
+            onChange={() => onChange(false)}
+          />
+          Hayır
+        </label>
+      </fieldset>
+    );
+  if (field.type === 'CHECKBOX')
     return (
       <label className="check-label" htmlFor={id}>
         <input
@@ -426,16 +434,27 @@ function DynamicField({
         <strong>{field.label}</strong> — Bu belgeyi aşağıdaki belge alanından yönetin.
       </p>
     );
+  if (field.type === 'DATE')
+    return (
+      <label htmlFor={id}>
+        {field.label}
+        {field.required ? ' *' : ''}
+        <TurkishDateInput
+          id={id}
+          required={field.required}
+          value={String(value ?? '')}
+          onChange={onChange}
+        />
+      </label>
+    );
   const inputType =
-    field.type === 'DATE'
-      ? 'date'
-      : field.type === 'INTEGER' || field.type === 'DECIMAL'
-        ? 'number'
-        : field.type === 'EMAIL'
-          ? 'email'
-          : field.type === 'PHONE'
-            ? 'tel'
-            : 'text';
+    field.type === 'INTEGER' || field.type === 'DECIMAL'
+      ? 'number'
+      : field.type === 'EMAIL'
+        ? 'email'
+        : field.type === 'PHONE'
+          ? 'tel'
+          : 'text';
   return (
     <label htmlFor={id}>
       {field.label}
@@ -460,6 +479,14 @@ function DynamicField({
       />
     </label>
   );
+}
+function displayDate(value: string) {
+  const [year, month, day] = value.split('-');
+  return year && month && day ? `${day}/${month}/${year}` : value;
+}
+function apiDate(value: string) {
+  const [day, month, year] = value.split('/');
+  return day && month && year ? `${year}-${month}-${day}` : value;
 }
 function number(value: unknown) {
   return typeof value === 'number' ? value : undefined;

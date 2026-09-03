@@ -74,7 +74,7 @@ export function AdminEmailCampaignsPage() {
         </p>
       )}
       <div className="email-grid">
-        <form className="management-card" onSubmit={create}>
+        <form className="management-card email-composer" onSubmit={create}>
           <h2>Yeni kampanya</h2>
           <label>
             Başlık
@@ -101,9 +101,9 @@ export function AdminEmailCampaignsPage() {
             Dosya eki (isteğe bağlı, en fazla 10 MB)
             <input name="attachment" type="file" />
           </label>
-          <button className="action-create">Taslak oluştur</button>
+          <button className="action-create">Kampanya oluştur</button>
         </form>
-        <section className="management-card">
+        <section className="management-card campaign-history">
           <h2>Kampanyalar</h2>
           {values.length === 0 ? (
             <p>Henüz kampanya yok.</p>
@@ -113,8 +113,8 @@ export function AdminEmailCampaignsPage() {
                 <button key={v.id} onClick={() => void open(v.id)}>
                   <strong>{v.subject}</strong>
                   <span>
-                    {v.status} · {v.sentCount}/{v.recipientCount} gönderildi · {v.failedCount}{' '}
-                    başarısız
+                    {campaignStatus(v.status)} · {v.sentCount}/{v.recipientCount} gönderildi ·{' '}
+                    {v.failedCount} başarısız
                   </span>
                 </button>
               ))}
@@ -127,15 +127,19 @@ export function AdminEmailCampaignsPage() {
           <section className="campaign-detail">
             <p>{selected.body}</p>
             <p>
-              <strong>Durum:</strong> {selected.status}
+              <strong>Durum:</strong> {campaignStatus(selected.status)}
             </p>
             <div className="interview-actions">
               {selected.status === 'DRAFT' && (
-                <button onClick={() => void action('send')}>Gönderimi başlat</button>
+                <button className="action-create" onClick={() => void action('send')}>
+                  Gönderimi başlat
+                </button>
               )}
               {selected.status === 'COMPLETED' &&
                 selected.recipients.some((r) => r.status === 'FAILED') && (
-                  <button onClick={() => void action('retry')}>Başarısızları tekrar dene</button>
+                  <button className="action-update" onClick={() => void action('retry')}>
+                    Başarısızları tekrar dene
+                  </button>
                 )}
               <button className="secondary" onClick={() => void open(selected.id)}>
                 Sonuçları yenile
@@ -154,7 +158,7 @@ export function AdminEmailCampaignsPage() {
                 {selected.recipients.map((r) => (
                   <tr key={r.id}>
                     <td>{r.email}</td>
-                    <td>{r.status}</td>
+                    <td>{recipientStatus(r.status)}</td>
                     <td>{r.attemptCount}</td>
                     <td>{r.failureMessage ?? '—'}</td>
                   </tr>
@@ -169,4 +173,16 @@ export function AdminEmailCampaignsPage() {
 }
 function message(e: unknown) {
   return apiErrorMessage(e, 'E-posta işlemi tamamlanamadı.');
+}
+
+function campaignStatus(status: string) {
+  if (status === 'DRAFT') return 'Gönderilmeye hazır';
+  if (status === 'SENDING') return 'Gönderiliyor';
+  return 'Tamamlandı';
+}
+
+function recipientStatus(status: string) {
+  if (status === 'PENDING') return 'Bekliyor';
+  if (status === 'SENT') return 'Gönderildi';
+  return 'Başarısız';
 }

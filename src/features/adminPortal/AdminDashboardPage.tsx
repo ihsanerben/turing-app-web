@@ -43,12 +43,10 @@ export function AdminStatisticsPage() {
         <Stat label="Başvuru yapan aday" value={data.candidatesWithApplication} />
         <Stat label="Başvuruya dönüşüm" value={`%${applicationRate}`} />
         <Stat label="Toplam başvuru" value={data.totalApplications} />
-        <Stat label="Taslak başvuru" value={data.draftApplications} />
-        <Stat label="Gönderilmiş başvuru" value={data.submittedApplications} />
-        <Stat label="İncelenen başvuru" value={data.applicationsUnderReview} />
-        <Stat label="Onaylanan başvuru" value={data.approvedApplications} />
-        <Stat label="Reddedilen başvuru" value={data.rejectedApplications} />
-        <Stat label="Yedek başvuru" value={data.waitlistedApplications} />
+        <Stat label="Beklemede" value={data.pendingApplications} />
+        <Stat label="Eksik belge" value={data.missingDocumentApplications} />
+        <Stat label="Olumlu" value={data.approvedApplications} />
+        <Stat label="Olumsuz" value={data.rejectedApplications} />
         <Stat label="Ortalama tamamlanma" value={`%${Math.round(data.averageCompletion)}`} />
         <Stat label="Aktif program" value={data.activePrograms} />
         <Stat label="Planlanmış program" value={data.scheduledPeriods} />

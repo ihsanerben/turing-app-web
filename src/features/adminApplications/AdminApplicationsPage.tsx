@@ -8,7 +8,8 @@ import { adminApplicationApi, type AdminDetail, type AdminPage } from './adminAp
 import { scholarshipApi, type Program } from '../scholarship/scholarshipApi';
 import { adminUserApi, type AdminUser } from '../users/adminUserApi';
 const statuses: { value: ApplicationStatus; label: string }[] = [
-  { value: 'SUBMITTED', label: 'Bekliyor' },
+  { value: 'SUBMITTED', label: 'Beklemede' },
+  { value: 'MISSING_DOCUMENT', label: 'Eksik belge' },
   { value: 'APPROVED', label: 'Olumlu' },
   { value: 'REJECTED', label: 'Olumsuz' },
 ];
@@ -212,7 +213,7 @@ export function AdminApplicationsPage() {
               <option value="asc">Artan</option>
             </select>
           </label>
-          <button>Uygula</button>
+          <button className="action-save">Uygula</button>
         </form>
       )}
       {query.has('programId') && (
@@ -277,7 +278,7 @@ export function AdminApplicationsPage() {
       )}
       {detail && (
         <Modal title={detail.application.studentName} onClose={() => setDetail(null)}>
-          <section className="application-detail">
+          <section className="application-detail modal-detail">
             <p>
               {detail.application.studentEmail} · {detail.application.programName} ·{' '}
               {applicationStatusLabel(detail.application.status)}
@@ -340,6 +341,7 @@ export function AdminApplicationsPage() {
                     </span>
                     <button
                       type="button"
+                      className="action-update"
                       onClick={() => void inspectDocument(value.id, value.originalName)}
                     >
                       İncele
@@ -350,7 +352,7 @@ export function AdminApplicationsPage() {
             ) : (
               <p>Belge yok.</p>
             )}
-            <form onSubmit={note}>
+            <form className="modal-form" onSubmit={note}>
               <label>
                 Internal not
                 <textarea
@@ -363,10 +365,12 @@ export function AdminApplicationsPage() {
               <button className="action-save">Notu kaydet</button>
             </form>
             {!finalStatuses.includes(detail.application.status) && (
-              <form onSubmit={status}>
+              <form className="modal-form modal-form--decision" onSubmit={status}>
                 <label>
                   Başvuru sonucu
                   <select name="status" required>
+                    <option value="SUBMITTED">Beklemede</option>
+                    <option value="MISSING_DOCUMENT">Eksik belge</option>
                     <option value="APPROVED">Olumlu</option>
                     <option value="REJECTED">Olumsuz</option>
                   </select>
@@ -395,6 +399,7 @@ function formatDate(value: string) {
 function applicationStatusLabel(status: ApplicationStatus) {
   if (status === 'APPROVED') return 'Olumlu';
   if (status === 'REJECTED') return 'Olumsuz';
-  if (status === 'WITHDRAWN') return 'Geri çekildi';
-  return 'Bekliyor';
+  if (status === 'MISSING_DOCUMENT') return 'Eksik belge';
+  if (status === 'WITHDRAWN') return 'Olumsuz';
+  return 'Beklemede';
 }

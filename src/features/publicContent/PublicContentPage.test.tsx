@@ -83,7 +83,7 @@ describe('public content pages', () => {
     );
     await screen.findByRole('heading', { name: 'Duyurular' });
     fireEvent.change(screen.getByLabelText('Başlık'), { target: { value: 'Yeni dönem' } });
-    fireEvent.change(screen.getByLabelText('URL adı'), { target: { value: 'yeni-donem' } });
+    expect(screen.getByRole('textbox', { name: /URL adı/ })).toHaveValue('yeni-donem');
     fireEvent.change(screen.getByLabelText('Özet'), { target: { value: 'Özet' } });
     fireEvent.change(screen.getByLabelText('İçerik'), { target: { value: 'İçerik' } });
     fireEvent.click(screen.getByRole('button', { name: 'Duyuru oluştur' }));

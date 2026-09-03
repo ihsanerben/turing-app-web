@@ -60,7 +60,7 @@ describe('StudentDashboardPage', () => {
       'href',
       '/portal/applications/application-1/form',
     );
-    expect(screen.getByText('Belge bekleniyor')).toBeInTheDocument();
+    expect(screen.getByText('Eksik belge')).toBeInTheDocument();
     const summary = screen.getByRole('region', { name: 'Portal özeti' });
     expect(within(summary).getAllByText('1')).toHaveLength(2);
   });

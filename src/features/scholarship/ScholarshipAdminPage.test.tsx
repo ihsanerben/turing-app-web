@@ -46,6 +46,12 @@ describe('ScholarshipAdminPage', () => {
     expect(screen.getByRole('heading', { name: '4. İstenen belgeler' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Kaydet' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Kaydet ve yayınla' })).toBeInTheDocument();
+    for (const dateInput of screen.getAllByLabelText('Tarih')) {
+      expect((dateInput as HTMLInputElement).value).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+    }
+    for (const timeInput of screen.getAllByLabelText('Saat')) {
+      expect((timeInput as HTMLInputElement).value).toMatch(/^\d{2}:\d{2}$/);
+    }
     expect(screen.queryByText(/versiyon/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/form oluştur/i)).not.toBeInTheDocument();
   });
