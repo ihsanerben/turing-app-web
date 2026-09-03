@@ -8,7 +8,7 @@ vi.mock('./applicationApi', () => ({
   applicationApi: { list: vi.fn(), scholarships: vi.fn(), create: vi.fn() },
 }));
 describe('ApplicationListPage', () => {
-  it('shows drafts and disables already used periods', async () => {
+  it('shows the students existing applications without mixing in programs', async () => {
     vi.mocked(applicationApi.list).mockResolvedValue([
       {
         id: 'app-1',
@@ -24,21 +24,6 @@ describe('ApplicationListPage', () => {
         version: 1,
       },
     ]);
-    vi.mocked(applicationApi.scholarships).mockResolvedValue([
-      {
-        program: { id: 'program-1', name: 'Başarı Bursu', slug: 'basari', description: 'Burs' },
-        periods: [
-          {
-            id: 'period-1',
-            name: '2026',
-            academicYear: '2026-2027',
-            startsAt: '',
-            endsAt: '',
-            status: 'OPEN',
-          },
-        ],
-      },
-    ]);
     render(
       <MemoryRouter>
         <ApplicationListPage />
@@ -49,6 +34,6 @@ describe('ApplicationListPage', () => {
       'href',
       '/portal/applications/app-1/form',
     );
-    expect(screen.getByRole('button', { name: 'Başvuru mevcut' })).toBeDisabled();
+    expect(screen.queryByText('Açık başvurular')).not.toBeInTheDocument();
   });
 });

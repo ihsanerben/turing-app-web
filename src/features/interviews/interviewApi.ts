@@ -26,6 +26,8 @@ export type Feedback = {
 export type AdminInterview = {
   id: string;
   applicationId: string;
+  studentName: string;
+  programName: string;
   startsAt: string;
   endsAt: string;
   status: InterviewStatus;
@@ -46,11 +48,16 @@ export type ScheduleInput = {
 };
 export const interviewApi = {
   mine: () => apiClient.get<StudentInterview[]>('/api/me/interviews').then((r) => r.data),
+  all: () => apiClient.get<AdminInterview[]>('/api/admin/interviews').then((r) => r.data),
   byApplication: (id: string) =>
     apiClient.get<AdminInterview[]>(`/api/admin/applications/${id}/interviews`).then((r) => r.data),
   create: (applicationId: string, body: ScheduleInput) =>
     apiClient
       .post<AdminInterview>(`/api/admin/applications/${applicationId}/interviews`, body)
+      .then((r) => r.data),
+  createBulk: (listId: string, body: ScheduleInput) =>
+    apiClient
+      .post<AdminInterview[]>('/api/admin/interviews/bulk', { ...body, listId })
       .then((r) => r.data),
   update: (value: AdminInterview, body: ScheduleInput) =>
     apiClient

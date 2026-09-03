@@ -42,10 +42,19 @@ export const notificationApi = {
     apiClient.get<CampaignSummary[]>('/api/admin/email-campaigns').then((r) => r.data),
   campaign: (id: string) =>
     apiClient.get<CampaignDetail>(`/api/admin/email-campaigns/${id}`).then((r) => r.data),
-  create: (subject: string, body: string, userIds: string[]) =>
-    apiClient
-      .post<CampaignDetail>('/api/admin/email-campaigns', { subject, body, userIds })
-      .then((r) => r.data),
+  create: (subject: string, body: string, userIds: string[], attachment?: File) => {
+    if (!attachment)
+      return apiClient
+        .post<CampaignDetail>('/api/admin/email-campaigns', { subject, body, userIds })
+        .then((r) => r.data);
+    const data = new FormData();
+    data.append(
+      'campaign',
+      new Blob([JSON.stringify({ subject, body, userIds })], { type: 'application/json' }),
+    );
+    data.append('attachment', attachment);
+    return apiClient.post<CampaignDetail>('/api/admin/email-campaigns', data).then((r) => r.data);
+  },
   send: (v: CampaignDetail) =>
     apiClient
       .post<CampaignDetail>(`/api/admin/email-campaigns/${v.id}/send`, { version: v.version })

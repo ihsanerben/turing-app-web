@@ -2,9 +2,13 @@ import { apiClient } from '../../api/apiClient';
 import type { ApplicationStatus } from '../applications/applicationApi';
 export type AdminApplication = {
   id: string;
+  studentUserId: string;
   studentName: string;
   studentEmail: string;
+  university?: string | null;
+  department?: string | null;
   periodId: string;
+  programId: string;
   periodName: string;
   programName: string;
   status: ApplicationStatus;
@@ -45,8 +49,10 @@ export const adminApplicationApi = {
     apiClient.get<AdminPage>(`/api/admin/applications?${params}`).then((r) => r.data),
   detail: (id: string) =>
     apiClient.get<AdminDetail>(`/api/admin/applications/${id}`).then((r) => r.data),
-  addNote: (id: string, content: string) =>
-    apiClient.post(`/api/admin/applications/${id}/notes`, { content }),
+  saveNote: (id: string, content: string) =>
+    apiClient.put(`/api/admin/applications/${id}/note`, { content }),
+  downloadDocument: (id: string) =>
+    apiClient.get<Blob>(`/api/admin/documents/${id}`, { responseType: 'blob' }).then((r) => r.data),
   changeStatus: (id: string, status: ApplicationStatus, version: number, reason: string) =>
     apiClient
       .patch<AdminDetail>(`/api/admin/applications/${id}/status`, { status, version, reason })

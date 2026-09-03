@@ -13,14 +13,6 @@ export type Announcement = {
   createdAt?: string;
   version?: number;
 };
-export type Faq = {
-  id: string;
-  question: string;
-  answer: string;
-  displayOrder: number;
-  active: boolean;
-  version: number;
-};
 export const publicContentApi = {
   scholarships: () =>
     apiClient.get<PublicScholarship[]>('/api/public/scholarships').then((r) => r.data),
@@ -30,5 +22,4 @@ export const publicContentApi = {
     apiClient.get<Announcement[]>('/api/public/announcements').then((r) => r.data),
   announcement: (slug: string) =>
     apiClient.get<Announcement>(`/api/public/announcements/${slug}`).then((r) => r.data),
-  faqs: () => apiClient.get<Faq[]>('/api/public/faq').then((r) => r.data),
 };

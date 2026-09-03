@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/authContextValue';
+import { AppBrand, MaintenanceNotice } from '../features/appConfig/AppBrand';
 
 export function StudentLayout() {
   const { user, logout } = useAuth();
@@ -19,14 +20,19 @@ export function StudentLayout() {
 
   return (
     <div className="student-shell">
+      <MaintenanceNotice />
       <header className="student-header">
         <NavLink className="student-brand" to="/portal" end>
-          <span>T</span>
-          Turing Scholarship
+          <AppBrand />
         </NavLink>
         <div className="student-account">
           <span>{user ? `${user.firstName} ${user.lastName}` : 'Öğrenci'}</span>
-          <button type="button" disabled={loggingOut} onClick={() => void handleLogout()}>
+          <button
+            className="logout-button"
+            type="button"
+            disabled={loggingOut}
+            onClick={() => void handleLogout()}
+          >
             {loggingOut ? 'Çıkış yapılıyor…' : 'Çıkış yap'}
           </button>
         </div>
@@ -36,6 +42,7 @@ export function StudentLayout() {
           <NavLink to="/portal" end>
             Genel bakış
           </NavLink>
+          <NavLink to="/portal/programs">Programlar</NavLink>
           <NavLink to="/portal/profile">Profilim</NavLink>
           <NavLink to="/portal/applications">Başvurularım</NavLink>
           <NavLink to="/portal/interviews">Mülakatlarım</NavLink>

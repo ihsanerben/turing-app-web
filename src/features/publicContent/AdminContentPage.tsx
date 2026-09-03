@@ -1,25 +1,22 @@
-import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
+import { apiErrorMessage } from '../../api/apiErrorMessage';
 import { adminContentApi } from './adminContentApi';
-import type { Announcement, Faq } from './publicContentApi';
+import type { Announcement } from './publicContentApi';
+import { AdminAppConfigPanel } from '../appConfig/AdminAppConfigPanel';
 export function AdminContentPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [faqs, setFaqs] = useState<Faq[]>([]);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
-  const [editingFaq, setEditingFaq] = useState<Faq | null>(null);
   const [error, setError] = useState('');
   async function load() {
-    const [a, f] = await Promise.all([adminContentApi.announcements(), adminContentApi.faqs()]);
-    setAnnouncements(a);
-    setFaqs(f);
+    setAnnouncements(await adminContentApi.announcements());
   }
   useEffect(() => {
     let active = true;
-    Promise.all([adminContentApi.announcements(), adminContentApi.faqs()])
-      .then(([a, f]) => {
+    adminContentApi
+      .announcements()
+      .then((a) => {
         if (active) {
           setAnnouncements(a);
-          setFaqs(f);
         }
       })
       .catch((e) => {
@@ -49,25 +46,6 @@ export function AdminContentPage() {
       setError(message(x));
     }
   }
-  async function saveFaq(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget,
-      d = new FormData(form),
-      body = {
-        question: d.get('question'),
-        answer: d.get('answer'),
-        displayOrder: Number(d.get('displayOrder')),
-      };
-    try {
-      if (editingFaq) await adminContentApi.updateFaq(editingFaq, body);
-      else await adminContentApi.createFaq(body);
-      setEditingFaq(null);
-      form.reset();
-      await load();
-    } catch (x) {
-      setError(message(x));
-    }
-  }
   async function announcementAction(v: Announcement, kind: 'publish' | 'archiveAnnouncement') {
     try {
       await adminContentApi[kind](v);
@@ -76,26 +54,40 @@ export function AdminContentPage() {
       setError(message(e));
     }
   }
-  async function faqArchive(v: Faq) {
+  async function restore(v: Announcement) {
     try {
-      await adminContentApi.archiveFaq(v);
+      const restored = await adminContentApi.restoreAnnouncement(v);
+      setEditingAnnouncement(restored);
       await load();
     } catch (e) {
       setError(message(e));
     }
   }
+  async function remove(v: Announcement) {
+    if (!window.confirm(`“${v.title}” duyurusu silinsin mi?`)) return;
+    try {
+      await adminContentApi.deleteAnnouncement(v);
+      if (editingAnnouncement?.id === v.id) setEditingAnnouncement(null);
+      await load();
+    } catch (e) {
+      setError(message(e));
+    }
+  }
+  const active = announcements.filter((v) => v.status !== 'ARCHIVED');
+  const archived = announcements.filter((v) => v.status === 'ARCHIVED');
   return (
     <section className="admin-workspace content-admin">
       <header>
         <p className="eyebrow">İçerik</p>
-        <h1>Public içerik yönetimi</h1>
-        <p>Duyuru ve sıkça sorulan soruları yönetin.</p>
+        <h1>İçerik yönetimi</h1>
+        <p>Duyuruları oluşturun, yayınlayın ve arşivleyin.</p>
       </header>
       {error && (
         <p role="alert" className="status status--error">
           {error}
         </p>
       )}
+      <AdminAppConfigPanel />
       <div className="content-grid">
         <form
           className="management-card"
@@ -129,15 +121,29 @@ export function AdminContentPage() {
               required
             />
           </label>
-          <button>{editingAnnouncement ? 'Güncelle' : 'Taslak oluştur'}</button>
+          <div className="form-actions">
+            {editingAnnouncement && (
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setEditingAnnouncement(null)}
+              >
+                Vazgeç
+              </button>
+            )}
+            <button className={editingAnnouncement ? 'action-update' : 'action-create'}>
+              {editingAnnouncement ? 'Güncelle' : 'Duyuru oluştur'}
+            </button>
+          </div>
         </form>
         <section className="management-card">
           <h2>Duyurular</h2>
-          {announcements.map((v) => (
+          {active.length === 0 && <p>Henüz aktif bir duyuru yok.</p>}
+          {active.map((v) => (
             <article className="content-row" key={v.id}>
               <div>
                 <strong>{v.title}</strong>
-                <span>{v.status}</span>
+                <span>{v.status === 'DRAFT' ? 'Taslak' : 'Yayında'}</span>
               </div>
               <div>
                 {v.status === 'DRAFT' && (
@@ -156,61 +162,37 @@ export function AdminContentPage() {
                     Arşivle
                   </button>
                 )}
+                <button className="danger" onClick={() => void remove(v)}>
+                  Sil
+                </button>
               </div>
-            </article>
-          ))}
-        </section>
-        <form className="management-card" key={editingFaq?.id ?? 'new-faq'} onSubmit={saveFaq}>
-          <h2>{editingFaq ? 'SSS düzenle' : 'Yeni SSS'}</h2>
-          <label>
-            Soru
-            <input name="question" defaultValue={editingFaq?.question ?? ''} required />
-          </label>
-          <label>
-            Yanıt
-            <textarea name="answer" rows={5} defaultValue={editingFaq?.answer ?? ''} required />
-          </label>
-          <label>
-            Sıra
-            <input
-              name="displayOrder"
-              type="number"
-              min="0"
-              defaultValue={editingFaq?.displayOrder ?? 0}
-              required
-            />
-          </label>
-          <button>{editingFaq ? 'Güncelle' : 'SSS oluştur'}</button>
-        </form>
-        <section className="management-card">
-          <h2>SSS kayıtları</h2>
-          {faqs.map((v) => (
-            <article className="content-row" key={v.id}>
-              <div>
-                <strong>{v.question}</strong>
-                <span>
-                  Sıra {v.displayOrder} · {v.active ? 'Aktif' : 'Arşiv'}
-                </span>
-              </div>
-              {v.active && (
-                <div>
-                  <button className="secondary" onClick={() => setEditingFaq(v)}>
-                    Düzenle
-                  </button>
-                  <button className="danger" onClick={() => void faqArchive(v)}>
-                    Arşivle
-                  </button>
-                </div>
-              )}
             </article>
           ))}
         </section>
       </div>
+      <section className="management-card content-archive">
+        <h2>Arşiv</h2>
+        {archived.length === 0 && <p>Arşivde duyuru yok.</p>}
+        {archived.map((v) => (
+          <article className="content-row" key={v.id}>
+            <div>
+              <strong>{v.title}</strong>
+              <span>Arşivde</span>
+            </div>
+            <div>
+              <button className="secondary" onClick={() => void restore(v)}>
+                Arşivden çıkar ve düzenle
+              </button>
+              <button className="danger" onClick={() => void remove(v)}>
+                Sil
+              </button>
+            </div>
+          </article>
+        ))}
+      </section>
     </section>
   );
 }
 function message(e: unknown) {
-  return axios.isAxiosError(e)
-    ? (e.response?.data?.message ?? 'İşlem tamamlanamadı.')
-    : 'İşlem tamamlanamadı.';
+  return apiErrorMessage(e, 'İçerik işlemi tamamlanamadı.');
 }

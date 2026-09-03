@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { type FormEvent, useEffect, useState } from 'react';
+import { formatTurkishDateTime } from '../../components/turkishDateTime';
 import { auditApi, type AuditLogPage } from './auditApi';
 
 const emptyFilters = { action: '', entityType: '', actorId: '', entityId: '', direction: 'desc' };
@@ -179,9 +180,7 @@ export function AdminAuditPage() {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(value),
-  );
+  return formatTurkishDateTime(value);
 }
 
 function formatJson(value: unknown) {

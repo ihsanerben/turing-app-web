@@ -26,7 +26,7 @@ export function HealthPage() {
   return (
     <section className="card" aria-labelledby="page-title">
       <p className="eyebrow">Turing Scholarship</p>
-      <h1 id="page-title">Burs yönetiminin temeli hazır.</h1>
+      <h1 id="page-title">Başvuru yönetiminin temeli hazır.</h1>
       {health.status === 'loading' && <p role="status">API bağlantısı kontrol ediliyor…</p>}
       {health.status === 'success' && (
         <p role="status" className="status status--success">

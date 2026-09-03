@@ -1,12 +1,12 @@
-import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { apiErrorMessage } from '../../api/apiErrorMessage';
 import { authApi } from './authApi';
 import { useAuth } from './authContextValue';
+import { useAppConfig } from '../appConfig/appConfigContextValue';
 
 function messageOf(error: unknown) {
-  if (axios.isAxiosError(error)) return error.response?.data?.message ?? 'İşlem tamamlanamadı.';
-  return 'İşlem tamamlanamadı.';
+  return apiErrorMessage(error, 'Kimlik doğrulama işlemi tamamlanamadı.');
 }
 
 export function LoginPage() {
@@ -68,7 +68,7 @@ export function RegisterPage() {
         <Field name="password" label="Şifre" type="password" minLength={10} />
         {message && <p className="status status--success">{message}</p>}
         {error && <p className="status status--error">{error}</p>}
-        <button>Kayıt ol</button>
+        <button className="action-create">Kayıt ol</button>
       </form>
       <Link to="/login">Girişe dön</Link>
     </AuthCard>
@@ -152,9 +152,10 @@ export function ResetPasswordPage() {
 }
 
 function AuthCard({ title, children }: React.PropsWithChildren<{ title: string }>) {
+  const { config } = useAppConfig();
   return (
     <section className="card auth-card">
-      <p className="eyebrow">Turing Scholarship</p>
+      <p className="eyebrow">{config.applicationName}</p>
       <h1>{title}</h1>
       {children}
     </section>

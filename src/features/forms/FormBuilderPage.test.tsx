@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FormBuilderPage } from './FormBuilderPage';
 import { formApi, type FormDefinition } from './formApi';
 import { documentApi } from '../documents/documentApi';
@@ -16,8 +16,17 @@ vi.mock('./formApi', () => ({
   },
 }));
 vi.mock('../documents/documentApi', () => ({
-  documentApi: { adminRequirements: vi.fn(), createRequirement: vi.fn() },
+  documentApi: {
+    adminRequirements: vi.fn(),
+    createRequirement: vi.fn(),
+    updateRequirement: vi.fn(),
+    deleteRequirement: vi.fn(),
+  },
 }));
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 const published: FormDefinition = {
   id: 'form-1',
   periodId: 'period-1',
@@ -65,9 +74,36 @@ describe('FormBuilderPage', () => {
     vi.mocked(documentApi.adminRequirements).mockResolvedValue([]);
     renderPage();
     expect(
-      await screen.findByRole('heading', { name: 'Başvuru formu builder' }),
+      await screen.findByRole('heading', { name: 'Başvuru formunu hazırla' }),
     ).toBeInTheDocument();
     expect(await screen.findByText('Aile geliri *')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Yeni versiyon oluştur' })).toBeEnabled();
+  });
+
+  it('keeps a successfully created document requirement without reloading the list', async () => {
+    vi.mocked(formApi.list).mockResolvedValue([]);
+    vi.mocked(documentApi.adminRequirements).mockResolvedValue([]);
+    vi.mocked(documentApi.createRequirement).mockResolvedValue({
+      id: 'requirement-1',
+      periodId: 'period-1',
+      name: 'Öğrenci belgesi',
+      description: null,
+      required: true,
+      allowedMimeTypes: ['application/pdf'],
+      maxSizeBytes: 5 * 1024 * 1024,
+      order: 0,
+    });
+    renderPage();
+
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Ad' }), {
+      target: { value: 'Öğrenci belgesi' },
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Zorunlu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Belge ekle' }));
+
+    expect(await screen.findByText('Belge gereksinimi oluşturuldu.')).toBeInTheDocument();
+    expect(screen.getByText('Öğrenci belgesi')).toBeInTheDocument();
+    await waitFor(() => expect(documentApi.createRequirement).toHaveBeenCalledOnce());
+    expect(documentApi.adminRequirements).toHaveBeenCalledOnce();
   });
 });
