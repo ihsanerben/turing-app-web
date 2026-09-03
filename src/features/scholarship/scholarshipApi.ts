@@ -1,6 +1,5 @@
 import { apiClient } from '../../api/apiClient';
-export type PeriodStatus =
-  'DRAFT' | 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'EVALUATION' | 'COMPLETED' | 'ARCHIVED';
+export type PeriodStatus = 'DRAFT' | 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'COMPLETED' | 'ARCHIVED';
 export type Program = {
   id: string;
   name: string;
@@ -26,9 +25,12 @@ export const scholarshipApi = {
   programs: () => apiClient.get<Program[]>('/api/admin/scholarship-programs').then((r) => r.data),
   createProgram: (body: { name: string; slug: string; description: string }) =>
     apiClient.post<Program>('/api/admin/scholarship-programs', body).then((r) => r.data),
-  archiveProgram: (id: string, version: number) =>
+  updateProgram: (program: Program, body: { name: string; slug: string; description: string }) =>
     apiClient
-      .post<Program>(`/api/admin/scholarship-programs/${id}/archive`, { version })
+      .put<Program>(`/api/admin/scholarship-programs/${program.id}`, {
+        ...body,
+        version: program.version,
+      })
       .then((r) => r.data),
   periods: (programId: string) =>
     apiClient
@@ -36,6 +38,14 @@ export const scholarshipApi = {
       .then((r) => r.data),
   createPeriod: (body: Record<string, unknown>) =>
     apiClient.post<Period>('/api/admin/application-periods', body).then((r) => r.data),
+  updatePeriod: (period: Period, body: Record<string, unknown>) =>
+    apiClient
+      .put<Period>(`/api/admin/application-periods/${period.id}`, {
+        ...body,
+        programId: period.programId,
+        version: period.version,
+      })
+      .then((r) => r.data),
   transition: (period: Period, status: PeriodStatus) =>
     apiClient
       .patch<Period>(`/api/admin/application-periods/${period.id}/status`, {

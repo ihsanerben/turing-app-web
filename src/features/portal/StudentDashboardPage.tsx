@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatTurkishDateTime } from '../../components/turkishDateTime';
 import { applicationApi, type Application } from '../applications/applicationApi';
 import { useAuth } from '../auth/authContextValue';
 import { interviewApi, type StudentInterview } from '../interviews/interviewApi';
@@ -150,10 +151,10 @@ export function StudentDashboardPage() {
             </>
           ) : (
             <>
-              <h2>Açık burs dönemlerini inceleyin</h2>
-              <p>Yeni başvuru dönemlerini başvurular sayfasından takip edebilirsiniz.</p>
-              <Link className="button-link" to="/portal/applications">
-                Açık başvuruları gör
+              <h2>Programları inceleyin</h2>
+              <p>Yayınlanmış programları programlar sayfasından takip edebilirsiniz.</p>
+              <Link className="button-link" to="/portal/programs">
+                Programları gör
               </Link>
             </>
           )}
@@ -231,10 +232,7 @@ export function StudentDashboardPage() {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('tr-TR', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
+  return formatTurkishDateTime(value);
 }
 
 function message(error: unknown) {

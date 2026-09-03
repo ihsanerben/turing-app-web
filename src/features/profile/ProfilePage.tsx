@@ -65,9 +65,13 @@ export function ProfilePage() {
         <fieldset>
           <legend>Kimlik ve iletişim</legend>
           <Field
-            label="Ulusal kimlik numarası"
+            label="Kimlik numarası"
+            inputMode="numeric"
+            pattern="[1-9][0-9]{10}"
+            maxLength={11}
+            title="11 rakamlı, sıfırla başlamayan geçerli bir kimlik numarası yazın."
             value={profile.nationalId}
-            onChange={(v) => change('nationalId', v)}
+            onChange={(v) => change('nationalId', v?.replace(/\D/g, '').slice(0, 11) ?? null)}
           />
           <Field
             label="Doğum tarihi"
@@ -87,17 +91,6 @@ export function ProfilePage() {
             onChange={(v) => change('addressLine', v)}
           />
           <Field label="Şehir" value={profile.city} onChange={(v) => change('city', v)} />
-          <Field
-            label="Posta kodu"
-            value={profile.postalCode}
-            onChange={(v) => change('postalCode', v)}
-          />
-          <Field
-            label="Ülke kodu"
-            value={profile.countryCode}
-            maxLength={2}
-            onChange={(v) => change('countryCode', v?.toUpperCase() ?? null)}
-          />
         </fieldset>
         <fieldset>
           <legend>Eğitim</legend>
@@ -189,7 +182,9 @@ export function ProfilePage() {
         </fieldset>
         {message && <p className="status status--success">{message}</p>}
         {error && <p className="status status--error">{error}</p>}
-        <button disabled={saving}>{saving ? 'Kaydediliyor…' : 'Profili kaydet'}</button>
+        <button className="action-save" disabled={saving}>
+          {saving ? 'Kaydediliyor…' : 'Profili kaydet'}
+        </button>
       </form>
     </section>
   );

@@ -1,11 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import axios from 'axios';
 import { useEffect, useState, type FormEvent } from 'react';
+import { apiErrorMessage } from '../../api/apiErrorMessage';
 import { notificationApi, type CampaignDetail, type CampaignSummary } from './notificationApi';
+import { audienceListApi, type AudienceList } from '../audience/audienceListApi';
+import { Modal } from '../../components/Modal';
 export function AdminEmailCampaignsPage() {
   const [values, setValues] = useState<CampaignSummary[]>([]);
   const [selected, setSelected] = useState<CampaignDetail | null>(null);
   const [error, setError] = useState('');
+  const [lists, setLists] = useState<AudienceList[]>([]);
   async function load() {
     try {
       setValues(await notificationApi.campaigns());
@@ -16,20 +19,24 @@ export function AdminEmailCampaignsPage() {
   }
   useEffect(() => {
     void load();
+    audienceListApi
+      .all()
+      .then(setLists)
+      .catch((e) => setError(message(e)));
   }, []);
   async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget,
       d = new FormData(form),
-      ids = String(d.get('userIds'))
-        .split(/[\s,]+/)
-        .map((v) => v.trim())
-        .filter(Boolean);
+      attachment = d.get('attachment'),
+      list = lists.find((value) => value.id === String(d.get('listId'))),
+      ids = list?.members.map((value) => value.userId) ?? [];
     try {
       const result = await notificationApi.create(
         String(d.get('subject')),
         String(d.get('body')),
         ids,
+        attachment instanceof File && attachment.size ? attachment : undefined,
       );
       setSelected(result);
       form.reset();
@@ -70,7 +77,7 @@ export function AdminEmailCampaignsPage() {
         <form className="management-card" onSubmit={create}>
           <h2>Yeni kampanya</h2>
           <label>
-            Konu
+            Başlık
             <input name="subject" maxLength={200} required />
           </label>
           <label>
@@ -78,15 +85,23 @@ export function AdminEmailCampaignsPage() {
             <textarea name="body" rows={8} maxLength={10000} required />
           </label>
           <label>
-            Alıcı kullanıcı ID’leri
-            <textarea
-              name="userIds"
-              rows={5}
-              placeholder="Virgül veya yeni satırla ayırın"
-              required
-            />
+            Alıcı listesi
+            <select name="listId" required defaultValue="">
+              <option value="" disabled>
+                Liste seçin
+              </option>
+              {lists.map((value) => (
+                <option key={value.id} value={value.id}>
+                  {value.name} — {value.members.length} öğrenci
+                </option>
+              ))}
+            </select>
           </label>
-          <button>Taslak oluştur</button>
+          <label>
+            Dosya eki (isteğe bağlı, en fazla 10 MB)
+            <input name="attachment" type="file" />
+          </label>
+          <button className="action-create">Taslak oluştur</button>
         </form>
         <section className="management-card">
           <h2>Kampanyalar</h2>
@@ -108,51 +123,50 @@ export function AdminEmailCampaignsPage() {
         </section>
       </div>
       {selected && (
-        <section className="management-card campaign-detail">
-          <h2>{selected.subject}</h2>
-          <p>{selected.body}</p>
-          <p>
-            <strong>Durum:</strong> {selected.status}
-          </p>
-          <div className="interview-actions">
-            {selected.status === 'DRAFT' && (
-              <button onClick={() => void action('send')}>Gönderimi başlat</button>
-            )}
-            {selected.status === 'COMPLETED' &&
-              selected.recipients.some((r) => r.status === 'FAILED') && (
-                <button onClick={() => void action('retry')}>Başarısızları tekrar dene</button>
+        <Modal title={selected.subject} onClose={() => setSelected(null)}>
+          <section className="campaign-detail">
+            <p>{selected.body}</p>
+            <p>
+              <strong>Durum:</strong> {selected.status}
+            </p>
+            <div className="interview-actions">
+              {selected.status === 'DRAFT' && (
+                <button onClick={() => void action('send')}>Gönderimi başlat</button>
               )}
-            <button className="secondary" onClick={() => void open(selected.id)}>
-              Sonuçları yenile
-            </button>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Alıcı</th>
-                <th>Durum</th>
-                <th>Deneme</th>
-                <th>Hata</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selected.recipients.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.email}</td>
-                  <td>{r.status}</td>
-                  <td>{r.attemptCount}</td>
-                  <td>{r.failureMessage ?? '—'}</td>
+              {selected.status === 'COMPLETED' &&
+                selected.recipients.some((r) => r.status === 'FAILED') && (
+                  <button onClick={() => void action('retry')}>Başarısızları tekrar dene</button>
+                )}
+              <button className="secondary" onClick={() => void open(selected.id)}>
+                Sonuçları yenile
+              </button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Alıcı</th>
+                  <th>Durum</th>
+                  <th>Deneme</th>
+                  <th>Hata</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+              </thead>
+              <tbody>
+                {selected.recipients.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.email}</td>
+                    <td>{r.status}</td>
+                    <td>{r.attemptCount}</td>
+                    <td>{r.failureMessage ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </Modal>
       )}
     </section>
   );
 }
 function message(e: unknown) {
-  return axios.isAxiosError(e)
-    ? (e.response?.data?.message ?? 'İşlem tamamlanamadı.')
-    : 'İşlem tamamlanamadı.';
+  return apiErrorMessage(e, 'E-posta işlemi tamamlanamadı.');
 }

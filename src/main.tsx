@@ -5,13 +5,16 @@ import './styles.css';
 import './public-content.css';
 import { AuthProvider } from './features/auth/AuthContext';
 import { AppErrorBoundary } from './app/AppErrorBoundary';
+import { AppConfigProvider } from './features/appConfig/AppConfigContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppErrorBoundary>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <AppConfigProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </AppConfigProvider>
     </AppErrorBoundary>
   </StrictMode>,
 );

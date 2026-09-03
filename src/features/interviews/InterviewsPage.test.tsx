@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudentInterviewsPage } from './StudentInterviewsPage';
 import { AdminInterviewsPage } from './AdminInterviewsPage';
@@ -7,6 +7,7 @@ vi.mock('../auth/authContextValue', () => ({ useAuth: () => ({ user: { id: 'admi
 vi.mock('./interviewApi', () => ({
   interviewApi: {
     mine: vi.fn(),
+    all: vi.fn(),
     byApplication: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -14,9 +15,17 @@ vi.mock('./interviewApi', () => ({
     feedback: vi.fn(),
   },
 }));
+vi.mock('../adminApplications/adminApplicationApi', () => ({
+  adminApplicationApi: { list: vi.fn().mockResolvedValue({ content: [] }) },
+}));
+vi.mock('../audience/audienceListApi', () => ({
+  audienceListApi: { all: vi.fn().mockResolvedValue([]) },
+}));
 const admin: AdminInterview = {
   id: 'i1',
   applicationId: 'a1',
+  studentName: 'Ayşe Öğrenci',
+  programName: 'Başarı Programı',
   startsAt: '2026-09-03T10:00:00Z',
   endsAt: '2026-09-03T11:00:00Z',
   status: 'COMPLETED',
@@ -37,12 +46,28 @@ describe('interview pages', () => {
     expect(await screen.findByText('Başarı Bursu')).toBeInTheDocument();
     expect(screen.queryByText('Internal feedback')).not.toBeInTheDocument();
   });
-  it('loads an application and exposes feedback only to admin', async () => {
-    vi.mocked(interviewApi.byApplication).mockResolvedValue([admin]);
+  it('lists interviews and opens the selected interview', async () => {
+    vi.mocked(interviewApi.all).mockResolvedValue([admin]);
     render(<AdminInterviewsPage />);
-    fireEvent.change(screen.getByLabelText('Başvuru ID'), { target: { value: 'a1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Başvuruyu aç' }));
-    await waitFor(() => expect(interviewApi.byApplication).toHaveBeenCalledWith('a1'));
-    expect(await screen.findByRole('heading', { name: 'Internal feedback' })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /Ayşe Öğrenci/ }));
+    expect(await screen.findByRole('heading', { name: 'Mülakat notu' })).toBeInTheDocument();
+  });
+  it('shows only the field required by the selected interview type', async () => {
+    vi.mocked(interviewApi.all).mockResolvedValue([]);
+    const view = render(<AdminInterviewsPage />);
+    const page = within(view.container);
+    fireEvent.click(await page.findByRole('button', { name: 'Yeni mülakat aç' }));
+
+    const type = page.getByRole('combobox', { name: 'Görüşme türü' });
+    expect(page.getByRole('textbox', { name: 'Görüşme bağlantısı' })).toBeInTheDocument();
+    expect(page.queryByRole('textbox', { name: 'Konum' })).not.toBeInTheDocument();
+
+    fireEvent.change(type, { target: { value: 'IN_PERSON' } });
+    expect(page.getByRole('textbox', { name: 'Konum' })).toBeInTheDocument();
+    expect(page.queryByRole('textbox', { name: 'Görüşme bağlantısı' })).not.toBeInTheDocument();
+
+    fireEvent.change(type, { target: { value: 'PHONE' } });
+    expect(page.queryByRole('textbox', { name: 'Konum' })).not.toBeInTheDocument();
+    expect(page.queryByRole('textbox', { name: 'Görüşme bağlantısı' })).not.toBeInTheDocument();
   });
 });

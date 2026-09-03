@@ -32,6 +32,7 @@ export function interviewStatusLabel(status: InterviewStatus) {
 
 export function applicationAction(application: Application) {
   if (application.status === 'DRAFT') return 'Başvuruya devam et';
+  if (application.status === 'SUBMITTED') return 'Başvuruyu düzenle';
   if (application.status === 'MISSING_DOCUMENT') return 'Belgeleri tamamla';
   return 'Başvuruyu görüntüle';
 }

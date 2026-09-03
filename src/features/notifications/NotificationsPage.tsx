@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { notificationApi, type Notification } from './notificationApi';
+import { formatTurkishDateTime } from '../../components/turkishDateTime';
 export function NotificationsPage() {
   const [values, setValues] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ export function NotificationsPage() {
               <div>
                 <strong>{v.title}</strong>
                 <p>{v.message}</p>
-                <time dateTime={v.createdAt}>{new Date(v.createdAt).toLocaleString('tr-TR')}</time>
+                <time dateTime={v.createdAt}>{formatTurkishDateTime(v.createdAt)}</time>
               </div>
               {!v.readAt && <button onClick={() => void read(v)}>Okundu işaretle</button>}
             </article>

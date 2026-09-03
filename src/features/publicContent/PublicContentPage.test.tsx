@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AnnouncementsPage, FaqPage, ScholarshipsPage } from './PublicPages';
+import { AnnouncementsPage, ScholarshipsPage } from './PublicPages';
 import { AdminContentPage } from './AdminContentPage';
 import { publicContentApi } from './publicContentApi';
 import { adminContentApi } from './adminContentApi';
@@ -11,7 +11,6 @@ vi.mock('./publicContentApi', () => ({
     scholarship: vi.fn(),
     announcements: vi.fn(),
     announcement: vi.fn(),
-    faqs: vi.fn(),
   },
 }));
 vi.mock('./adminContentApi', () => ({
@@ -21,10 +20,6 @@ vi.mock('./adminContentApi', () => ({
     updateAnnouncement: vi.fn(),
     publish: vi.fn(),
     archiveAnnouncement: vi.fn(),
-    faqs: vi.fn(),
-    createFaq: vi.fn(),
-    updateFaq: vi.fn(),
-    archiveFaq: vi.fn(),
   },
 }));
 describe('public content pages', () => {
@@ -69,27 +64,8 @@ describe('public content pages', () => {
     );
     expect(await screen.findByText('Yeni dönem')).toBeInTheDocument();
   });
-  it('renders active FAQs', async () => {
-    vi.mocked(publicContentApi.faqs).mockResolvedValue([
-      {
-        id: 'f1',
-        question: 'Kimler başvurabilir?',
-        answer: 'Aktif öğrenciler.',
-        displayOrder: 1,
-        active: true,
-        version: 0,
-      },
-    ]);
-    render(
-      <MemoryRouter>
-        <FaqPage />
-      </MemoryRouter>,
-    );
-    expect(await screen.findByText('Kimler başvurabilir?')).toBeInTheDocument();
-  });
   it('creates a draft from the admin screen', async () => {
     vi.mocked(adminContentApi.announcements).mockResolvedValue([]);
-    vi.mocked(adminContentApi.faqs).mockResolvedValue([]);
     vi.mocked(adminContentApi.createAnnouncement).mockResolvedValue({
       id: 'a1',
       title: 'Yeni dönem',
@@ -110,7 +86,7 @@ describe('public content pages', () => {
     fireEvent.change(screen.getByLabelText('URL adı'), { target: { value: 'yeni-donem' } });
     fireEvent.change(screen.getByLabelText('Özet'), { target: { value: 'Özet' } });
     fireEvent.change(screen.getByLabelText('İçerik'), { target: { value: 'İçerik' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Taslak oluştur' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Duyuru oluştur' }));
     await waitFor(() => expect(adminContentApi.createAnnouncement).toHaveBeenCalled());
   });
 });

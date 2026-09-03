@@ -38,6 +38,21 @@ export const documentApi = {
         body,
       )
       .then((r) => r.data),
+  updateRequirement: (
+    periodId: string,
+    requirementId: string,
+    body: Omit<DocumentRequirement, 'id' | 'periodId'>,
+  ) =>
+    apiClient
+      .put<DocumentRequirement>(
+        `/api/admin/application-periods/${periodId}/document-requirements/${requirementId}`,
+        body,
+      )
+      .then((r) => r.data),
+  deleteRequirement: (periodId: string, requirementId: string) =>
+    apiClient.delete(
+      `/api/admin/application-periods/${periodId}/document-requirements/${requirementId}`,
+    ),
   requirements: (applicationId: string) =>
     apiClient
       .get<DocumentRequirement[]>(`/api/me/applications/${applicationId}/document-requirements`)

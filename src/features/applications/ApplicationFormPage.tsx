@@ -1,6 +1,6 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { apiErrorMessage } from '../../api/apiErrorMessage';
 import type { FormField } from '../forms/formApi';
 import { documentApi, type DocumentRequirement, type StoredFile } from '../documents/documentApi';
 import { applicationApi, type ApplicationAnswer, type ApplicationForm } from './applicationApi';
@@ -59,7 +59,11 @@ export function ApplicationFormPage() {
     try {
       const updated = await applicationApi.save(id, data.application.version, payload());
       setData(updated);
-      setNotice('Taslak kaydedildi.');
+      setNotice(
+        data.application.status === 'DRAFT'
+          ? 'Taslak kaydedildi.'
+          : 'Başvuru bilgileriniz kaydedildi.',
+      );
       return updated;
     } catch (value) {
       setError(message(value));
@@ -70,7 +74,7 @@ export function ApplicationFormPage() {
   }
   async function submit() {
     if (!data) return;
-    const saved = data.application.status === 'DRAFT' ? await save() : data;
+    const saved = await save();
     if (!saved) return;
     setBusy(true);
     try {
@@ -79,7 +83,9 @@ export function ApplicationFormPage() {
       setNotice(
         saved.application.status === 'MISSING_DOCUMENT'
           ? 'Belgeleriniz yeniden gönderildi.'
-          : 'Başvurunuz gönderildi.',
+          : saved.application.status === 'SUBMITTED'
+            ? 'Başvurunuz güncellendi.'
+            : 'Başvurunuz gönderildi.',
       );
     } catch (value) {
       setError(message(value));
@@ -108,8 +114,8 @@ export function ApplicationFormPage() {
         {error && <p role="alert">{error}</p>}
       </section>
     );
-  const editable = data.application.status === 'DRAFT';
-  const documentsEditable = editable || data.application.status === 'MISSING_DOCUMENT';
+  const editable = ['DRAFT', 'SUBMITTED', 'MISSING_DOCUMENT'].includes(data.application.status);
+  const documentsEditable = editable;
   return (
     <section className="portal-workspace application-form">
       <header>
@@ -179,17 +185,22 @@ export function ApplicationFormPage() {
         </Link>
         {editable && (
           <>
-            <button disabled={busy} onClick={() => void save()}>
+            <button className="action-save" disabled={busy} onClick={() => void save()}>
               Taslağı kaydet
             </button>
-            <button disabled={busy} onClick={() => void submit()}>
+            <button className="action-create" disabled={busy} onClick={() => void submit()}>
               Kaydet ve gönder
             </button>
           </>
         )}
         {data.application.status === 'MISSING_DOCUMENT' && (
           <button disabled={busy} onClick={() => void submit()}>
-            Belgeleri yeniden gönder
+            Başvurumu güncelle ve yeniden gönder
+          </button>
+        )}
+        {data.application.status === 'SUBMITTED' && (
+          <button className="action-save" disabled={busy} onClick={() => void submit()}>
+            Başvurumu güncelle
           </button>
         )}
         {(data.application.status === 'DRAFT' || data.application.status === 'SUBMITTED') && (
@@ -454,7 +465,5 @@ function number(value: unknown) {
   return typeof value === 'number' ? value : undefined;
 }
 function message(error: unknown) {
-  return axios.isAxiosError(error)
-    ? (error.response?.data?.message ?? 'İşlem tamamlanamadı.')
-    : 'İşlem tamamlanamadı.';
+  return apiErrorMessage(error, 'Başvuru işlemi tamamlanamadı.');
 }

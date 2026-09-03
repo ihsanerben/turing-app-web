@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { interviewApi, type StudentInterview } from './interviewApi';
 import { interviewStatusLabel } from '../portal/portalPresentation';
+import { formatTurkishDateTime } from '../../components/turkishDateTime';
 export function StudentInterviewsPage() {
   const [values, setValues] = useState<StudentInterview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,7 @@ export function StudentInterviewsPage() {
                   </span>
                 </div>
                 <div>
-                  <time dateTime={v.startsAt}>{format(v.startsAt)}</time>
+                  <time dateTime={v.startsAt}>{formatTurkishDateTime(v.startsAt)}</time>
                   <span>
                     {v.locationType === 'ONLINE' && v.meetingUrl ? (
                       <a href={v.meetingUrl} target="_blank" rel="noreferrer">
@@ -71,11 +72,6 @@ export function StudentInterviewsPage() {
         )}
       </section>
     </section>
-  );
-}
-function format(v: string) {
-  return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(v),
   );
 }
 function message(e: unknown) {
