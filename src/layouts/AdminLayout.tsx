@@ -26,7 +26,12 @@ export function AdminLayout() {
           <AppBrand admin />
         </NavLink>
         <div className="student-account">
-          <span>{user ? `${user.firstName} ${user.lastName}` : 'Admin'}</span>
+          <span className={`role-badge role-badge--${(user?.role ?? 'ADMIN').toLowerCase()}`}>
+            {user?.role ?? 'ADMIN'}
+          </span>
+          <span className="account-name">
+            {user ? `${user.firstName} ${user.lastName}` : 'Admin'}
+          </span>
           <button
             className="logout-button"
             type="button"

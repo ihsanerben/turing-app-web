@@ -54,7 +54,7 @@ export function RegisterPage() {
       await authApi.register(
         data as { email: string; password: string; firstName: string; lastName: string },
       );
-      setMessage('Kayıt tamamlandı. Mailpit üzerinden doğrulama bağlantısını açabilirsin.');
+      setMessage('Kayıt tamamlandı. Artık giriş yapabilirsin.');
     } catch (reason) {
       setError(messageOf(reason));
     }

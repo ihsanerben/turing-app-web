@@ -8,6 +8,7 @@ export function AdminEmailCampaignsPage() {
   const [values, setValues] = useState<CampaignSummary[]>([]);
   const [selected, setSelected] = useState<CampaignDetail | null>(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [lists, setLists] = useState<AudienceList[]>([]);
   async function load() {
     try {
@@ -36,11 +37,14 @@ export function AdminEmailCampaignsPage() {
         String(d.get('subject')),
         String(d.get('body')),
         ids,
+        list?.id ?? '',
+        list?.name ?? '',
         attachment instanceof File && attachment.size ? attachment : undefined,
       );
       setSelected(result);
       form.reset();
       await load();
+      showNotice('E-posta kampanyası oluşturuldu.');
     } catch (x) {
       setError(message(x));
     }
@@ -57,9 +61,18 @@ export function AdminEmailCampaignsPage() {
     try {
       setSelected(await notificationApi[kind](selected));
       await load();
+      showNotice(
+        kind === 'send'
+          ? 'E-posta gönderimi başlatıldı.'
+          : 'Başarısız gönderimler yeniden başlatıldı.',
+      );
     } catch (e) {
       setError(message(e));
     }
+  }
+  function showNotice(value: string) {
+    setNotice('');
+    window.setTimeout(() => setNotice(value), 0);
   }
   return (
     <section className="admin-workspace email-page">
@@ -71,6 +84,11 @@ export function AdminEmailCampaignsPage() {
       {error && (
         <p role="alert" className="status status--error">
           {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="status status--success">
+          {notice}
         </p>
       )}
       <div className="email-grid">
@@ -125,10 +143,28 @@ export function AdminEmailCampaignsPage() {
       {selected && (
         <Modal title={selected.subject} onClose={() => setSelected(null)}>
           <section className="campaign-detail">
-            <p>{selected.body}</p>
-            <p>
-              <strong>Durum:</strong> {campaignStatus(selected.status)}
-            </p>
+            <dl className="detail-grid campaign-detail-grid">
+              <div>
+                <dt>Başlık</dt>
+                <dd>{selected.subject}</dd>
+              </div>
+              <div>
+                <dt>Gönderilen liste</dt>
+                <dd>{selected.audienceListName ?? 'Liste bilgisi bulunmuyor'}</dd>
+              </div>
+              <div>
+                <dt>Dosya</dt>
+                <dd>{selected.attachmentName ?? 'Dosya eklenmedi'}</dd>
+              </div>
+              <div>
+                <dt>Durum</dt>
+                <dd>{campaignStatus(selected.status)}</dd>
+              </div>
+              <div className="full-width">
+                <dt>İçerik</dt>
+                <dd className="campaign-message">{selected.body}</dd>
+              </div>
+            </dl>
             <div className="interview-actions">
               {selected.status === 'DRAFT' && (
                 <button className="action-create" onClick={() => void action('send')}>

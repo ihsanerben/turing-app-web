@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../auth/authContextValue';
 import { audienceListApi, type AudienceList } from '../audience/audienceListApi';
 import { TurkishDateTimeInput } from '../../components/TurkishDateTimeInput';
+import { StudentDetailsButton } from '../users/StudentDetailsButton';
 import { formatTurkishDateTime, readTurkishDateTime } from '../../components/turkishDateTime';
 import {
   interviewApi,
@@ -35,6 +36,7 @@ const statusLabels: Record<InterviewStatus, string> = {
   NO_SHOW: 'Katılmadı',
   RESCHEDULED: 'Yeniden planlandı',
 };
+type InterviewGroup = ReturnType<typeof groupInterviews>[number];
 
 export function AdminInterviewsPage() {
   const { user } = useAuth();
@@ -42,9 +44,22 @@ export function AdminInterviewsPage() {
   const [applications, setApplications] = useState<AdminApplication[]>([]);
   const [lists, setLists] = useState<AudienceList[]>([]);
   const [selected, setSelected] = useState<AdminInterview | null>(null);
+  const [selectedInterviewIds, setSelectedInterviewIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>('ONLINE');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  function selectGroup(group: InterviewGroup) {
+    setSelected(group.items[0]);
+    setSelectedInterviewIds(group.items.map((item) => item.id));
+    setLocationType(group.items[0].locationType);
+  }
+
+  function showNotice(value: string) {
+    setNotice('');
+    window.setTimeout(() => setNotice(value), 0);
+  }
 
   async function load() {
     const [interviews, approved, interviewStage, audienceLists] = await Promise.all([
@@ -101,8 +116,15 @@ export function AdminInterviewsPage() {
         meetingUrl: String(data.get('meetingUrl') ?? ''),
       };
       const listId = String(data.get('listId') ?? '');
+      const selectedInterviews = values.filter((item) => selectedInterviewIds.includes(item.id));
       const saved = selected
-        ? await interviewApi.update(selected, body)
+        ? (
+            await Promise.all(
+              (selectedInterviews.length ? selectedInterviews : [selected]).map((item) =>
+                interviewApi.update(item, body),
+              ),
+            )
+          )[0]
         : listId
           ? (await interviewApi.createBulk(listId, body))[0]
           : await interviewApi.create(String(data.get('applicationId')), body);
@@ -110,6 +132,7 @@ export function AdminInterviewsPage() {
       setCreating(false);
       setSelected(saved);
       await load();
+      showNotice(selected ? 'Mülakat güncellendi.' : 'Mülakat oluşturuldu.');
     } catch (e) {
       setError(message(e));
     }
@@ -117,8 +140,15 @@ export function AdminInterviewsPage() {
   async function change(status: InterviewStatus) {
     if (!selected) return;
     try {
-      setSelected(await interviewApi.status(selected, status));
+      const selectedInterviews = values.filter((item) => selectedInterviewIds.includes(item.id));
+      const changed = await Promise.all(
+        (selectedInterviews.length ? selectedInterviews : [selected]).map((item) =>
+          interviewApi.status(item, status),
+        ),
+      );
+      setSelected(changed[0]);
       await load();
+      showNotice('Mülakat durumu güncellendi.');
     } catch (e) {
       setError(message(e));
     }
@@ -139,6 +169,7 @@ export function AdminInterviewsPage() {
         ),
       );
       await load();
+      showNotice('Mülakat notu kaydedildi.');
     } catch (e) {
       setError(message(e));
     }
@@ -146,6 +177,8 @@ export function AdminInterviewsPage() {
 
   const editor = creating || selected;
   const ownFeedback = selected?.feedback.find((item) => item.interviewerId === user?.id);
+  const interviewGroups = groupInterviews(values);
+  const selectedInterviews = values.filter((item) => selectedInterviewIds.includes(item.id));
   return (
     <section className="admin-workspace interviews-page">
       <header>
@@ -158,27 +191,32 @@ export function AdminInterviewsPage() {
           {error}
         </p>
       )}
+      {notice && (
+        <p role="status" className="status status--success">
+          {notice}
+        </p>
+      )}
       {!editor ? (
         <section className="management-card selection-panel">
           <h2>Mülakatlar</h2>
           <div className="management-list">
             {values.length === 0 && <p>Henüz planlanmış bir mülakat yok.</p>}
-            {values.map((item) => (
+            {interviewGroups.map((group) => (
               <button
-                className="management-list-item"
-                key={item.id}
-                onClick={() => {
-                  setSelected(item);
-                  setLocationType(item.locationType);
-                }}
+                type="button"
+                className="management-list-item interview-group-row"
+                key={group.key}
+                aria-label={`${group.programName} mülakatını düzenle`}
+                onClick={() => selectGroup(group)}
               >
                 <span>
-                  <strong>{item.studentName}</strong>
-                  <small>{item.programName}</small>
+                  <strong>{group.programName} mülakatı</strong>
+                  <small>{group.programName}</small>
+                  <small>{group.items.length} öğrenci</small>
                 </span>
-                <span>
-                  <strong>{formatTurkishDateTime(item.startsAt)}</strong>
-                  <small>{statusLabels[item.status]}</small>
+                <span className="interview-date-summary">
+                  <strong>{formatTurkishDateTime(group.startsAt)}</strong>
+                  <small>{statusLabels[group.status]}</small>
                 </span>
               </button>
             ))}
@@ -187,6 +225,7 @@ export function AdminInterviewsPage() {
             className="action-create"
             onClick={() => {
               setCreating(true);
+              setSelectedInterviewIds([]);
               setLocationType('ONLINE');
             }}
           >
@@ -200,6 +239,7 @@ export function AdminInterviewsPage() {
             onClick={() => {
               setCreating(false);
               setSelected(null);
+              setSelectedInterviewIds([]);
               setLocationType('ONLINE');
             }}
           >
@@ -238,11 +278,20 @@ export function AdminInterviewsPage() {
               </>
             )}
             {selected && (
-              <p className="full-width record-summary">
-                <strong>{selected.studentName}</strong>
-                <span>{selected.programName}</span>
-                <small>Başvuru ID: {selected.applicationId}</small>
-              </p>
+              <section className="full-width record-summary interview-group-summary">
+                <strong>{selected.programName} mülakatı</strong>
+                <span>{formatTurkishDateTime(selected.startsAt)}</span>
+                <small>{Math.max(selectedInterviews.length, 1)} öğrenci</small>
+                <div className="interview-participants">
+                  {(selectedInterviews.length ? selectedInterviews : [selected]).map((item) => (
+                    <StudentDetailsButton
+                      key={item.id}
+                      name={item.studentName}
+                      applicationId={item.applicationId}
+                    />
+                  ))}
+                </div>
+              </section>
             )}
             <TurkishDateTimeInput
               name="startsAt"
@@ -293,7 +342,7 @@ export function AdminInterviewsPage() {
                   </button>
                 ))}
               </div>
-              {selected.status === 'COMPLETED' && (
+              {selected.status === 'COMPLETED' && selectedInterviews.length <= 1 && (
                 <form className="score-form" onSubmit={saveFeedback}>
                   <h3>Mülakat notu</h3>
                   <label>
@@ -326,6 +375,29 @@ export function AdminInterviewsPage() {
       )}
     </section>
   );
+}
+
+function groupInterviews(values: AdminInterview[]) {
+  const groups = new Map<string, AdminInterview[]>();
+  values.forEach((item) => {
+    const key = [
+      item.programName,
+      item.startsAt,
+      item.endsAt,
+      item.locationType,
+      item.location ?? '',
+      item.meetingUrl ?? '',
+      item.status,
+    ].join('|');
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  });
+  return [...groups.entries()].map(([key, items]) => ({
+    key,
+    items,
+    programName: items[0].programName,
+    startsAt: items[0].startsAt,
+    status: items[0].status,
+  }));
 }
 function message(error: unknown) {
   return apiErrorMessage(error, 'Mülakat işlemi tamamlanamadı.');

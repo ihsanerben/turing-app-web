@@ -22,6 +22,9 @@ export type CampaignDetail = {
   id: string;
   subject: string;
   body: string;
+  attachmentName: string | null;
+  audienceListId: string | null;
+  audienceListName: string | null;
   status: CampaignSummary['status'];
   recipients: Recipient[];
   createdAt: string;
@@ -42,16 +45,21 @@ export const notificationApi = {
     apiClient.get<CampaignSummary[]>('/api/admin/email-campaigns').then((r) => r.data),
   campaign: (id: string) =>
     apiClient.get<CampaignDetail>(`/api/admin/email-campaigns/${id}`).then((r) => r.data),
-  create: (subject: string, body: string, userIds: string[], attachment?: File) => {
+  create: (
+    subject: string,
+    body: string,
+    userIds: string[],
+    audienceListId: string,
+    audienceListName: string,
+    attachment?: File,
+  ) => {
+    const campaign = { subject, body, userIds, audienceListId, audienceListName };
     if (!attachment)
       return apiClient
-        .post<CampaignDetail>('/api/admin/email-campaigns', { subject, body, userIds })
+        .post<CampaignDetail>('/api/admin/email-campaigns', campaign)
         .then((r) => r.data);
     const data = new FormData();
-    data.append(
-      'campaign',
-      new Blob([JSON.stringify({ subject, body, userIds })], { type: 'application/json' }),
-    );
+    data.append('campaign', new Blob([JSON.stringify(campaign)], { type: 'application/json' }));
     data.append('attachment', attachment);
     return apiClient.post<CampaignDetail>('/api/admin/email-campaigns', data).then((r) => r.data);
   },

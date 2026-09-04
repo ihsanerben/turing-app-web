@@ -7,6 +7,8 @@ import { scholarshipApi, type Period, type Program } from './scholarshipApi';
 import { formApi, type FieldType, type FormField } from '../forms/formApi';
 import { documentApi } from '../documents/documentApi';
 import { toSlug } from '../../components/slug';
+import { ProgramListContent, ProgramState } from './ProgramLifecycle';
+import { latestProgramPeriod } from './programPeriod';
 
 export function ScholarshipAdminPage() {
   const [loadedAt] = useState(() => Date.now());
@@ -24,16 +26,12 @@ export function ScholarshipAdminPage() {
   const programFormRef = useRef<HTMLFormElement>(null);
   const periodFormRef = useRef<HTMLFormElement>(null);
   const loadPrograms = () =>
-    scholarshipApi.programs().then(async (values) => {
-      const activePrograms = values.filter((program) => program.active);
-      setPrograms(activePrograms);
+    scholarshipApi.programs(true).then(async (values) => {
+      setPrograms(values);
       const entries = await Promise.all(
-        activePrograms.map(async (program) => {
+        values.map(async (program) => {
           const programValues = await scholarshipApi.periods(program.id);
-          const current =
-            [...programValues].sort(
-              (left, right) => new Date(right.endsAt).getTime() - new Date(left.endsAt).getTime(),
-            )[0] ?? null;
+          const current = latestProgramPeriod(programValues);
           return [program.id, current] as const;
         }),
       );
@@ -255,6 +253,32 @@ export function ScholarshipAdminPage() {
     setNotice('Program bitirildi. Yeni başvuru alınmayacak.');
   }
 
+  async function archiveProgram(target?: Program) {
+    const program = target ?? programs.find((value) => value.id === selected);
+    if (!program) return;
+    try {
+      const updated = await scholarshipApi.archiveProgram(program);
+      setPrograms((values) => values.map((value) => (value.id === updated.id ? updated : value)));
+      setSelected('');
+      setSelectedPeriod('');
+      setNotice('Program arşive alındı ve diğer yönetim ekranlarından kaldırıldı.');
+    } catch (reason) {
+      setError(apiErrorMessage(reason, 'Program arşive alınamadı.'));
+    }
+  }
+
+  async function restoreProgram(target?: Program) {
+    const program = target ?? programs.find((value) => value.id === selected);
+    if (!program) return;
+    try {
+      const updated = await scholarshipApi.restoreProgram(program);
+      setPrograms((values) => values.map((value) => (value.id === updated.id ? updated : value)));
+      setNotice('Program arşivden çıkarıldı.');
+    } catch (reason) {
+      setError(apiErrorMessage(reason, 'Program arşivden çıkarılamadı.'));
+    }
+  }
+
   async function copyProgramId(id: string, input: HTMLInputElement) {
     try {
       await navigator.clipboard.writeText(id);
@@ -277,31 +301,82 @@ export function ScholarshipAdminPage() {
             {error}
           </p>
         )}
+        {notice && (
+          <p role="status" className="status status--success">
+            {notice}
+          </p>
+        )}
         <section className="management-card">
           <div className="program-list" aria-label="Başvuru programları">
-            {programs.map((program) => (
-              <button
-                className="program-card"
-                key={program.id}
-                type="button"
-                onClick={() => {
-                  setSelected(program.id);
-                  setSelectedPeriod('');
-                }}
-              >
-                <span className="program-card-main">
-                  <strong>{program.name}</strong>
-                  <span>{program.description}</span>
-                  <code className="program-id">Program ID: {program.id}</code>
-                </span>
-                <ProgramState period={programPeriods[program.id]} now={loadedAt} />
-              </button>
-            ))}
+            {programs
+              .filter((program) => program.active)
+              .map((program) => {
+                const period = programPeriods[program.id];
+                const finished = period?.status === 'CLOSED' || period?.status === 'COMPLETED';
+                return (
+                  <article className="program-list-row" key={program.id}>
+                    <button
+                      className="program-card"
+                      type="button"
+                      onClick={() => {
+                        setSelected(program.id);
+                        setSelectedPeriod('');
+                      }}
+                    >
+                      <ProgramListContent program={program} period={period} now={loadedAt} />
+                    </button>
+                    {finished && (
+                      <button
+                        className="danger program-list-action"
+                        type="button"
+                        onClick={() => void archiveProgram(program)}
+                      >
+                        Arşive al
+                      </button>
+                    )}
+                  </article>
+                );
+              })}
             {programs.length === 0 && <p>Henüz bir başvuru programı yok.</p>}
           </div>
           <button className="action-create" type="button" onClick={() => setCreating(true)}>
             Yeni başvuru programı aç
           </button>
+          {programs.some((program) => !program.active) && (
+            <div className="archived-programs">
+              <h2>Arşivdeki programlar</h2>
+              <div className="program-list">
+                {programs
+                  .filter((program) => !program.active)
+                  .map((program) => (
+                    <article className="program-list-row" key={program.id}>
+                      <button
+                        className="program-card"
+                        type="button"
+                        onClick={() => {
+                          setSelected(program.id);
+                          setSelectedPeriod('');
+                        }}
+                      >
+                        <ProgramListContent
+                          program={program}
+                          period={programPeriods[program.id]}
+                          now={loadedAt}
+                          archived
+                        />
+                      </button>
+                      <button
+                        className="action-create program-list-action"
+                        type="button"
+                        onClick={() => void restoreProgram(program)}
+                      >
+                        Arşivden çıkar
+                      </button>
+                    </article>
+                  ))}
+              </div>
+            </div>
+          )}
         </section>
       </section>
     );
@@ -325,6 +400,19 @@ export function ScholarshipAdminPage() {
         </button>
         <h1>{creating ? 'Yeni başvuru programı' : currentProgram?.name}</h1>
         <p>Tüm program bilgilerini bu sayfadan yönetin.</p>
+        {!creating && currentProgram && (
+          <div className="program-header-actions">
+            {!currentProgram.active ? (
+              <button className="action-create" type="button" onClick={() => void restoreProgram()}>
+                Arşivden çıkar
+              </button>
+            ) : currentPeriod?.status === 'CLOSED' || currentPeriod?.status === 'COMPLETED' ? (
+              <button className="danger" type="button" onClick={() => void archiveProgram()}>
+                Arşive al
+              </button>
+            ) : null}
+          </div>
+        )}
       </header>
       {error && (
         <p role="alert" className="status status--error">
@@ -358,6 +446,12 @@ export function ScholarshipAdminPage() {
           onSubmit={updateProgram}
         >
           <h2>1. Program bilgileri</h2>
+          <ProgramState
+            period={currentPeriod}
+            now={loadedAt}
+            detailed
+            archived={!currentProgram.active}
+          />
           <label>
             Program ID
             <span className="copy-field">
@@ -487,31 +581,6 @@ export function ScholarshipAdminPage() {
 function academicYear(date: Date) {
   const year = date.getFullYear();
   return `${year}-${year + 1}`;
-}
-
-function ProgramState({ period, now }: { period: Period | null | undefined; now: number }) {
-  if (period?.status === 'CLOSED' || period?.status === 'COMPLETED')
-    return (
-      <span className="program-state program-state--finished">
-        <strong>Bitmiş program</strong>
-        <small>Başvuru alımı kapalı</small>
-      </span>
-    );
-  const active = period?.status === 'OPEN' || period?.status === 'SCHEDULED';
-  if (!active)
-    return (
-      <span className="program-state program-state--draft">
-        <strong>Taslak</strong>
-        <small>Henüz yayında değil</small>
-      </span>
-    );
-  const days = Math.max(0, Math.ceil((new Date(period.endsAt).getTime() - now) / 86_400_000));
-  return (
-    <span className="program-state program-state--active">
-      <strong>Aktif</strong>
-      <small>{days} gün kaldı</small>
-    </span>
-  );
 }
 
 type DraftQuestion = {
