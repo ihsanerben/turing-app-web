@@ -146,18 +146,16 @@ export function AdminUsersPage({ role }: { role: 'students' | 'admins' }) {
               <button
                 type="button"
                 className="copy-value"
-                onClick={() => void copy(user.firstName, 'Ad')}
+                onClick={() =>
+                  students
+                    ? setSelected(user)
+                    : void copy(`${user.firstName} ${user.lastName}`, 'Ad soyad')
+                }
               >
-                <small>Ad</small>
-                <strong>{user.firstName}</strong>
-              </button>
-              <button
-                type="button"
-                className="copy-value"
-                onClick={() => void copy(user.lastName, 'Soyad')}
-              >
-                <small>Soyad</small>
-                <strong>{user.lastName}</strong>
+                <small>Ad soyad</small>
+                <strong>
+                  {user.firstName} {user.lastName}
+                </strong>
               </button>
               <button
                 type="button"
@@ -208,14 +206,14 @@ export function AdminUsersPage({ role }: { role: 'students' | 'admins' }) {
           title={`${selected.firstName} ${selected.lastName}`}
           onClose={() => setSelected(null)}
         >
-          <UserDetail user={selected} student={students} />
+          <AdminUserDetails user={selected} student={students} />
         </Modal>
       )}
     </section>
   );
 }
 
-function UserDetail({ user, student }: { user: AdminUser; student: boolean }) {
+export function AdminUserDetails({ user, student }: { user: AdminUser; student: boolean }) {
   const rows: [string, unknown][] = [
     ['Kullanıcı ID', user.id],
     ['Ad', user.firstName],

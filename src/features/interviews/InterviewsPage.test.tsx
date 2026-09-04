@@ -49,7 +49,9 @@ describe('interview pages', () => {
   it('lists interviews and opens the selected interview', async () => {
     vi.mocked(interviewApi.all).mockResolvedValue([admin]);
     render(<AdminInterviewsPage />);
-    fireEvent.click(await screen.findByRole('button', { name: /Ayşe Öğrenci/ }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Başarı Programı mülakatını düzenle' }),
+    );
     expect(await screen.findByRole('heading', { name: 'Mülakat notu' })).toBeInTheDocument();
   });
   it('shows only the field required by the selected interview type', async () => {

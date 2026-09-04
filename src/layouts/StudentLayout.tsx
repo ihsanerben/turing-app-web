@@ -26,7 +26,12 @@ export function StudentLayout() {
           <AppBrand />
         </NavLink>
         <div className="student-account">
-          <span>{user ? `${user.firstName} ${user.lastName}` : 'Öğrenci'}</span>
+          <span className={`role-badge role-badge--${(user?.role ?? 'USER').toLowerCase()}`}>
+            {user?.role ?? 'USER'}
+          </span>
+          <span className="account-name">
+            {user ? `${user.firstName} ${user.lastName}` : 'Öğrenci'}
+          </span>
           <button
             className="logout-button"
             type="button"

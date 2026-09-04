@@ -94,10 +94,6 @@ button.logout-button {
   box-shadow: 0 12px 30px rgb(28 45 74 / 16%);
 }
 
-.program-state--finished {
-  color: #475569;
-  background: #e2e8f0;
-}
 .maintenance-notice {
   padding: 10px 24px;
   color: #fff;
@@ -168,7 +164,7 @@ h1 {
 
 .status {
   position: fixed;
-  z-index: 1000;
+  z-index: 2000;
   top: 18px;
   left: 50%;
   width: min(calc(100% - 32px), 520px);
@@ -312,9 +308,34 @@ body {
 .student-account {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   color: #475569;
   font-weight: 650;
+}
+.account-name {
+  white-space: nowrap;
+}
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.role-badge--user {
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+.role-badge--admin {
+  border-color: #fed7aa;
+  color: #b45309;
+  background: #fff7ed;
 }
 .student-account button {
   padding: 9px 13px;
@@ -374,13 +395,13 @@ a:hover,
 }
 .student-content {
   display: grid;
+  align-content: start;
   justify-items: center;
   min-width: 0;
   padding: 0 clamp(20px, 4vw, 56px);
 }
 .profile-card {
-  width: min(100%, 860px);
-  margin-top: 48px;
+  margin-top: 42px;
 }
 .profile-form,
 .profile-form fieldset {
@@ -506,14 +527,38 @@ a:hover,
   padding: 10px 12px;
   border-radius: 10px;
   text-align: right;
+  border: 1px solid transparent;
 }
 .program-state--active {
   color: #166534 !important;
   background: #dcfce7;
+  border-color: #86efac;
 }
 .program-state--draft {
   color: #92400e !important;
   background: #fef3c7;
+  border-color: #fcd34d;
+}
+.program-state--finished {
+  color: #991b1b !important;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+.program-state--archived {
+  color: #475569 !important;
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+.archived-programs {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #dce4ef;
+}
+.program-archive-action {
+  width: 100%;
+  margin-top: 14px;
 }
 .program-state small {
   font-size: 0.78rem;
@@ -526,6 +571,14 @@ a:hover,
 .program-card span {
   color: #61708a;
   font-weight: 500;
+}
+.program-card-main small {
+  color: #64748b;
+}
+.management-card > .program-state {
+  width: 100%;
+  margin-bottom: 8px;
+  text-align: left;
 }
 .period-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1592,12 +1645,15 @@ body.modal-open {
 }
 .application-row {
   display: grid !important;
-  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-columns: 2fr 2fr 1fr auto;
+  align-items: center;
   gap: 14px;
+  padding: 14px 16px;
   text-align: left;
   background: #f8fafc !important;
   color: #172033 !important;
   border: 1px solid #e2e8f0 !important;
+  border-radius: 12px;
 }
 .application-row span {
   display: grid;
@@ -1850,6 +1906,76 @@ table small {
   gap: 16px;
   overflow-x: auto;
 }
+.campaign-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.campaign-detail-grid > div {
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.campaign-detail-grid dt {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.campaign-detail-grid dd {
+  margin: 5px 0 0;
+  color: #172033;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.campaign-detail-grid .full-width {
+  grid-column: 1 / -1;
+}
+.campaign-message {
+  white-space: pre-wrap;
+}
+.interview-group-row > span {
+  display: grid;
+  gap: 4px;
+}
+.interview-group-row {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+}
+.interview-date-summary {
+  min-width: 190px;
+  justify-items: end;
+  padding: 10px 12px;
+  border: 1px solid #d8e0eb;
+  border-radius: 10px;
+  color: #172033;
+  background: #f8fafc;
+}
+.interview-group-row:hover .interview-date-summary,
+.interview-group-row:focus-visible .interview-date-summary {
+  border-color: #94a3b8;
+  color: #172033;
+  background: #eef2f7;
+}
+.interview-group-summary {
+  display: grid;
+  gap: 7px;
+}
+.interview-participants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+@media (max-width: 650px) {
+  .campaign-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .campaign-detail table {
   width: 100%;
   border-collapse: collapse;
@@ -1897,6 +2023,28 @@ table small {
 .people-list {
   display: grid;
   gap: 12px;
+}
+.program-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 10px;
+}
+.program-list-row .program-card {
+  width: 100%;
+}
+.program-list-action {
+  min-width: 132px;
+}
+.program-header-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+@media (max-width: 700px) {
+  .program-list-row {
+    grid-template-columns: 1fr;
+  }
 }
 .program-choice-grid {
   grid-template-columns: 1fr;
@@ -1950,6 +2098,11 @@ table small {
   box-shadow: 0 5px 16px rgb(28 45 85 / 6%);
   transition: 160ms ease;
 }
+.program-choice-grid .program-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
 .program-choice-grid button:hover,
 .program-choice-grid button.is-selected,
 .people-list button:hover {
@@ -1975,12 +2128,60 @@ table small {
 }
 .person-row {
   display: grid;
-  grid-template-columns: 0.8fr 0.8fr 1.4fr auto;
+  grid-template-columns: 1.2fr 1.4fr auto;
   gap: 10px;
   align-items: stretch;
 }
 .person-row--student {
-  grid-template-columns: 0.8fr 0.8fr 1.2fr 1.1fr 1.1fr auto;
+  grid-template-columns: 1.2fr 1.2fr 1.1fr 1.1fr auto;
+}
+
+.interviews-page .management-list-item {
+  border-color: #d8e0eb;
+  background: #fff;
+  color: #172033;
+}
+.interviews-page .management-list-item:hover,
+.interviews-page .management-list-item:focus-visible {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #172033;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 10%);
+}
+.student-name-button,
+.management-card .student-name-button,
+.record-summary .student-name-button,
+.application-row .student-name-button {
+  display: inline-flex;
+  width: fit-content;
+  min-width: 0;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  color: #1d4ed8;
+  background: #eff6ff;
+  font: inherit;
+  font-weight: 750;
+  text-align: left;
+  box-shadow: none;
+  cursor: pointer;
+}
+.student-name-button:hover,
+.student-name-button:focus-visible,
+.management-card .student-name-button:hover,
+.management-card .student-name-button:focus-visible,
+.record-summary .student-name-button:hover,
+.record-summary .student-name-button:focus-visible,
+.application-row .student-name-button:hover,
+.application-row .student-name-button:focus-visible {
+  border-color: #60a5fa;
+  color: #1e40af;
+  background: #dbeafe;
+  transform: none;
+}
+.inline-error {
+  color: #b91c1c;
 }
 .people-list .person-row .copy-value {
   display: grid;
@@ -2076,7 +2277,8 @@ table small {
 
 /* Ortak etkileşim ve modal görünümü */
 .student-content > * {
-  width: min(1100px, 100%);
+  width: 100%;
+  max-width: 1100px;
 }
 
 button.action-create,

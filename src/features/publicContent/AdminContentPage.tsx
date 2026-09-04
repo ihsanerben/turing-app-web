@@ -8,6 +8,7 @@ export function AdminContentPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   async function load() {
     setAnnouncements(await adminContentApi.announcements());
   }
@@ -31,6 +32,7 @@ export function AdminContentPage() {
     e.preventDefault();
     const form = e.currentTarget,
       d = new FormData(form),
+      updating = Boolean(editingAnnouncement),
       body = {
         title: d.get('title'),
         slug: d.get('slug'),
@@ -43,6 +45,7 @@ export function AdminContentPage() {
       setEditingAnnouncement(null);
       form.reset();
       await load();
+      showNotice(updating ? 'Duyuru güncellendi.' : 'Duyuru oluşturuldu.');
     } catch (x) {
       setError(message(x));
     }
@@ -51,6 +54,7 @@ export function AdminContentPage() {
     try {
       await adminContentApi[kind](v);
       await load();
+      showNotice(kind === 'publish' ? 'Duyuru yayınlandı.' : 'Duyuru arşive alındı.');
     } catch (e) {
       setError(message(e));
     }
@@ -60,6 +64,7 @@ export function AdminContentPage() {
       const restored = await adminContentApi.restoreAnnouncement(v);
       setEditingAnnouncement(restored);
       await load();
+      showNotice('Duyuru arşivden çıkarıldı.');
     } catch (e) {
       setError(message(e));
     }
@@ -70,9 +75,14 @@ export function AdminContentPage() {
       await adminContentApi.deleteAnnouncement(v);
       if (editingAnnouncement?.id === v.id) setEditingAnnouncement(null);
       await load();
+      showNotice('Duyuru silindi.');
     } catch (e) {
       setError(message(e));
     }
+  }
+  function showNotice(value: string) {
+    setNotice('');
+    window.setTimeout(() => setNotice(value), 0);
   }
   const active = announcements.filter((v) => v.status !== 'ARCHIVED');
   const archived = announcements.filter((v) => v.status === 'ARCHIVED');
@@ -86,6 +96,11 @@ export function AdminContentPage() {
       {error && (
         <p role="alert" className="status status--error">
           {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="status status--success">
+          {notice}
         </p>
       )}
       <AdminAppConfigPanel />

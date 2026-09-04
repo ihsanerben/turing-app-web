@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NotificationsPage } from './NotificationsPage';
 import { AdminEmailCampaignsPage } from './AdminEmailCampaignsPage';
 import { notificationApi } from './notificationApi';
+vi.mock('../audience/audienceListApi', () => ({
+  audienceListApi: { all: vi.fn().mockResolvedValue([]) },
+}));
 vi.mock('./notificationApi', () => ({
   notificationApi: {
     campaigns: vi.fn(),
@@ -49,5 +52,32 @@ describe('notification pages', () => {
     ]);
     render(<AdminEmailCampaignsPage />);
     expect(await screen.findByText(/1\/2 gönderildi/)).toBeInTheDocument();
+  });
+  it('opens campaign content, attachment and audience list in a modal', async () => {
+    const summary = {
+      id: 'c1',
+      subject: 'Mülakat duyurusu',
+      status: 'DRAFT' as const,
+      recipientCount: 2,
+      sentCount: 0,
+      failedCount: 0,
+      createdAt: '2026-09-02T08:00:00Z',
+      version: 0,
+    };
+    vi.mocked(notificationApi.campaigns).mockResolvedValue([summary]);
+    vi.mocked(notificationApi.campaign).mockResolvedValue({
+      ...summary,
+      body: 'Mülakat bilgileri ektedir.',
+      attachmentName: 'program.pdf',
+      audienceListId: 'list-1',
+      audienceListName: 'Olumlu adaylar',
+      recipients: [],
+    });
+    render(<AdminEmailCampaignsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: /Mülakat duyurusu/ }));
+    expect(await screen.findByRole('dialog', { name: 'Mülakat duyurusu' })).toBeInTheDocument();
+    expect(screen.getByText('Mülakat bilgileri ektedir.')).toBeInTheDocument();
+    expect(screen.getByText('program.pdf')).toBeInTheDocument();
+    expect(screen.getByText('Olumlu adaylar')).toBeInTheDocument();
   });
 });

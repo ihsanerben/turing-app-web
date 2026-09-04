@@ -22,13 +22,28 @@ export type Period = {
   version: number;
 };
 export const scholarshipApi = {
-  programs: () => apiClient.get<Program[]>('/api/admin/scholarship-programs').then((r) => r.data),
+  programs: (includeArchived = false) =>
+    apiClient
+      .get<Program[]>('/api/admin/scholarship-programs', { params: { includeArchived } })
+      .then((r) => r.data),
   createProgram: (body: { name: string; slug: string; description: string }) =>
     apiClient.post<Program>('/api/admin/scholarship-programs', body).then((r) => r.data),
   updateProgram: (program: Program, body: { name: string; slug: string; description: string }) =>
     apiClient
       .put<Program>(`/api/admin/scholarship-programs/${program.id}`, {
         ...body,
+        version: program.version,
+      })
+      .then((r) => r.data),
+  archiveProgram: (program: Program) =>
+    apiClient
+      .post<Program>(`/api/admin/scholarship-programs/${program.id}/archive`, {
+        version: program.version,
+      })
+      .then((r) => r.data),
+  restoreProgram: (program: Program) =>
+    apiClient
+      .post<Program>(`/api/admin/scholarship-programs/${program.id}/restore`, {
         version: program.version,
       })
       .then((r) => r.data),

@@ -9,6 +9,7 @@ import type { ApplicationStatus } from '../applications/applicationApi';
 import { applicationStatusGroup, applicationStatusLabel } from '../portal/portalPresentation';
 import { scholarshipApi, type Program } from '../scholarship/scholarshipApi';
 import { audienceListApi, type AudienceList } from './audienceListApi';
+import { StudentDetailsButton } from '../users/StudentDetailsButton';
 
 const statuses: { value: ApplicationStatus | ''; label: string }[] = [
   { value: '', label: 'Tüm başvurular' },
@@ -166,7 +167,7 @@ export function AdminAudienceListsPage() {
                     onChange={() => toggle(value.id)}
                   />
                   <span>
-                    <strong>{value.studentName}</strong>
+                    <StudentDetailsButton name={value.studentName} userId={value.studentUserId} />
                     <small>{value.studentEmail}</small>
                   </span>
                   <span>{value.university ?? '—'}</span>
@@ -229,7 +230,7 @@ export function AdminAudienceListsPage() {
                     })
                   }
                 />
-                <strong>{value.studentName}</strong>
+                <StudentDetailsButton name={value.studentName} userId={value.studentUserId} />
                 <span>{value.studentEmail}</span>
                 <span>{value.university ?? '—'}</span>
                 <span>{value.department ?? '—'}</span>

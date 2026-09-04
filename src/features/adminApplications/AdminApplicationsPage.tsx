@@ -5,15 +5,17 @@ import { formatTurkishDateTime } from '../../components/turkishDateTime';
 import { Modal } from '../../components/Modal';
 import type { ApplicationStatus } from '../applications/applicationApi';
 import { adminApplicationApi, type AdminDetail, type AdminPage } from './adminApplicationApi';
-import { scholarshipApi, type Program } from '../scholarship/scholarshipApi';
+import { scholarshipApi, type Period, type Program } from '../scholarship/scholarshipApi';
+import { ProgramListContent } from '../scholarship/ProgramLifecycle';
+import { latestProgramPeriod } from '../scholarship/programPeriod';
 import { adminUserApi, type AdminUser } from '../users/adminUserApi';
+import { StudentDetailsButton } from '../users/StudentDetailsButton';
 const statuses: { value: ApplicationStatus; label: string }[] = [
   { value: 'SUBMITTED', label: 'Beklemede' },
   { value: 'MISSING_DOCUMENT', label: 'Eksik belge' },
   { value: 'APPROVED', label: 'Olumlu' },
   { value: 'REJECTED', label: 'Olumsuz' },
 ];
-const finalStatuses: ApplicationStatus[] = ['APPROVED', 'REJECTED'];
 export function AdminApplicationsPage() {
   const [query, setQuery] = useSearchParams();
   const [page, setPage] = useState<AdminPage | null>(null);
@@ -21,11 +23,25 @@ export function AdminApplicationsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [programPeriods, setProgramPeriods] = useState<Record<string, Period | null>>({});
+  const [loadedAt] = useState(() => Date.now());
   const [applicant, setApplicant] = useState<AdminUser | null>(null);
+  const [notice, setNotice] = useState('');
+  const [decisionStatus, setDecisionStatus] = useState<ApplicationStatus>('SUBMITTED');
+  const [decisionReason, setDecisionReason] = useState('');
   useEffect(() => {
     scholarshipApi
       .programs()
-      .then(setPrograms)
+      .then(async (values) => {
+        setPrograms(values);
+        const entries = await Promise.all(
+          values.map(
+            async (program) =>
+              [program.id, latestProgramPeriod(await scholarshipApi.periods(program.id))] as const,
+          ),
+        );
+        setProgramPeriods(Object.fromEntries(entries));
+      })
       .catch((value) => setError(message(value)));
   }, []);
   useEffect(() => {
@@ -63,6 +79,8 @@ export function AdminApplicationsPage() {
       const student = await adminUserApi.get(application.application.studentUserId);
       setDetail(application);
       setApplicant(student);
+      setDecisionStatus(businessStatus(application.application.status));
+      setDecisionReason(currentDecisionReason(application));
     } catch (value) {
       setError(message(value));
     }
@@ -78,18 +96,6 @@ export function AdminApplicationsPage() {
     next.set('page', '0');
     next.set('size', '20');
     setQuery(next);
-  }
-  async function note(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!detail) return;
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    try {
-      await adminApplicationApi.saveNote(detail.application.id, String(data.get('content')));
-      setDetail(await adminApplicationApi.detail(detail.application.id));
-    } catch (value) {
-      setError(message(value));
-    }
   }
   async function inspectDocument(id: string, name: string) {
     try {
@@ -110,20 +116,26 @@ export function AdminApplicationsPage() {
   async function status(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!detail) return;
-    const data = new FormData(event.currentTarget);
     try {
-      setDetail(
-        await adminApplicationApi.changeStatus(
-          detail.application.id,
-          String(data.get('status')) as ApplicationStatus,
-          detail.application.version,
-          String(data.get('reason')),
-        ),
+      const updated = await adminApplicationApi.changeStatus(
+        detail.application.id,
+        decisionStatus,
+        detail.application.version,
+        decisionReason,
       );
+      setDetail(updated);
+      setDecisionStatus(businessStatus(updated.application.status));
+      setDecisionReason(currentDecisionReason(updated) || decisionReason);
+      setError('');
+      showNotice('Başvuru sonucu ve gerekçesi güncellendi.');
       setPage(await adminApplicationApi.list(query));
     } catch (value) {
       setError(message(value));
     }
+  }
+  function showNotice(value: string) {
+    setNotice('');
+    window.setTimeout(() => setNotice(value), 0);
   }
   if (loading) return <p role="status">Başvurular yükleniyor…</p>;
   return (
@@ -140,13 +152,18 @@ export function AdminApplicationsPage() {
           {error}
         </p>
       )}
+      {notice && (
+        <p role="status" className="status status--success">
+          {notice}
+        </p>
+      )}
       <section className="management-card application-program-picker">
         <h2>Başvuru programları</h2>
         <div className="program-choice-grid">
           {programs.map((program) => (
             <button
               type="button"
-              className={query.get('programId') === program.id ? 'is-selected' : ''}
+              className={`program-card ${query.get('programId') === program.id ? 'is-selected' : ''}`}
               key={program.id}
               onClick={() =>
                 setQuery({
@@ -158,22 +175,14 @@ export function AdminApplicationsPage() {
                 })
               }
             >
-              <strong>{program.name}</strong>
-              <small>{program.id}</small>
+              <ProgramListContent
+                program={program}
+                period={programPeriods[program.id]}
+                now={loadedAt}
+              />
             </button>
           ))}
         </div>
-        {query.get('programId') &&
-          (() => {
-            const program = programs.find((value) => value.id === query.get('programId'));
-            return program ? (
-              <article className="selected-program-summary">
-                <strong>{program.name}</strong>
-                <p>{program.description}</p>
-                <small>Program ID: {program.id}</small>
-              </article>
-            ) : null;
-          })()}
       </section>
       {query.has('programId') && (
         <form className="management-card application-filters" onSubmit={filter}>
@@ -224,13 +233,9 @@ export function AdminApplicationsPage() {
           ) : (
             <div className="admin-application-list">
               {page.content.map((value) => (
-                <button
-                  className="application-row"
-                  key={value.id}
-                  onClick={() => void open(value.id)}
-                >
+                <article className="application-row" key={value.id}>
                   <span>
-                    <strong>{value.studentName}</strong>
+                    <StudentDetailsButton name={value.studentName} userId={value.studentUserId} />
                     <small>{value.studentEmail}</small>
                   </span>
                   <span>
@@ -244,8 +249,14 @@ export function AdminApplicationsPage() {
                       {value.completion}
                     </small>
                   </span>
-                  <strong>Detay</strong>
-                </button>
+                  <button
+                    type="button"
+                    className="danger detail-button"
+                    onClick={() => void open(value.id)}
+                  >
+                    Detay
+                  </button>
+                </article>
               ))}
             </div>
           )}
@@ -352,36 +363,33 @@ export function AdminApplicationsPage() {
             ) : (
               <p>Belge yok.</p>
             )}
-            <form className="modal-form" onSubmit={note}>
+            <form className="modal-form modal-form--decision" onSubmit={status}>
               <label>
-                Internal not
-                <textarea
-                  name="content"
-                  maxLength={2000}
+                Başvuru sonucu
+                <select
+                  name="status"
                   required
-                  defaultValue={detail.notes[0]?.content ?? ''}
+                  value={decisionStatus}
+                  onChange={(event) => setDecisionStatus(event.target.value as ApplicationStatus)}
+                >
+                  <option value="SUBMITTED">Beklemede</option>
+                  <option value="MISSING_DOCUMENT">Eksik belge</option>
+                  <option value="APPROVED">Olumlu</option>
+                  <option value="REJECTED">Olumsuz</option>
+                </select>
+              </label>
+              <label>
+                Gerekçe
+                <textarea
+                  name="reason"
+                  maxLength={500}
+                  required
+                  value={decisionReason}
+                  onChange={(event) => setDecisionReason(event.target.value)}
                 />
               </label>
-              <button className="action-save">Notu kaydet</button>
+              <button className="action-update">Durumu güncelle</button>
             </form>
-            {!finalStatuses.includes(detail.application.status) && (
-              <form className="modal-form modal-form--decision" onSubmit={status}>
-                <label>
-                  Başvuru sonucu
-                  <select name="status" required>
-                    <option value="SUBMITTED">Beklemede</option>
-                    <option value="MISSING_DOCUMENT">Eksik belge</option>
-                    <option value="APPROVED">Olumlu</option>
-                    <option value="REJECTED">Olumsuz</option>
-                  </select>
-                </label>
-                <label>
-                  Gerekçe
-                  <textarea name="reason" maxLength={500} required />
-                </label>
-                <button className="action-update">Durumu güncelle</button>
-              </form>
-            )}
           </section>
         </Modal>
       )}
@@ -390,6 +398,17 @@ export function AdminApplicationsPage() {
 }
 function message(error: unknown) {
   return apiErrorMessage(error, 'Gelen başvuru işlemi tamamlanamadı.');
+}
+
+function businessStatus(status: ApplicationStatus): ApplicationStatus {
+  if (status === 'MISSING_DOCUMENT' || status === 'APPROVED' || status === 'REJECTED')
+    return status;
+  return 'SUBMITTED';
+}
+
+function currentDecisionReason(detail: AdminDetail) {
+  const status = businessStatus(detail.application.status);
+  return detail.history.find((item) => businessStatus(item.newStatus) === status)?.reason ?? '';
 }
 
 function formatDate(value: string) {

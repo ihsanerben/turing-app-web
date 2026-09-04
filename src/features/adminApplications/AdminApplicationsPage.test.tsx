@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AdminApplicationsPage } from './AdminApplicationsPage';
@@ -16,7 +16,7 @@ vi.mock('./adminApplicationApi', () => ({
   },
 }));
 vi.mock('../scholarship/scholarshipApi', () => ({
-  scholarshipApi: { programs: vi.fn() },
+  scholarshipApi: { programs: vi.fn(), periods: vi.fn() },
 }));
 vi.mock('../users/adminUserApi', () => ({ adminUserApi: { get: vi.fn() } }));
 const application: AdminApplication = {
@@ -44,6 +44,21 @@ describe('AdminApplicationsPage', () => {
         slug: 'basari',
         description: '',
         active: true,
+        version: 0,
+      },
+    ]);
+    vi.mocked(scholarshipApi.periods).mockResolvedValue([
+      {
+        id: 'period-1',
+        programId: 'program-1',
+        programName: 'Başarı Bursu',
+        name: '2026 Başvuruları',
+        academicYear: '2026-2027',
+        startsAt: '2026-09-01T09:00:00Z',
+        endsAt: '2099-09-30T09:00:00Z',
+        status: 'OPEN',
+        maxRecipients: 20,
+        allowWithdrawal: true,
         version: 0,
       },
     ]);
@@ -94,15 +109,51 @@ describe('AdminApplicationsPage', () => {
       studyYear: null,
       gpa: null,
     });
+    vi.mocked(adminApplicationApi.changeStatus).mockResolvedValue({
+      application: { ...application, status: 'APPROVED', version: 3 },
+      answers: [],
+      documents: [],
+      notes: [],
+      history: [
+        {
+          oldStatus: 'SUBMITTED',
+          newStatus: 'APPROVED',
+          changedBy: 'Admin User',
+          reason: 'Uygun bulundu.',
+          createdAt: '2026-09-04T09:00:00Z',
+        },
+      ],
+    });
     render(
       <MemoryRouter initialEntries={['/?programId=program-1']}>
         <AdminApplicationsPage />
       </MemoryRouter>,
     );
     expect(await screen.findByRole('heading', { name: 'Gelen başvurular' })).toBeInTheDocument();
-    fireEvent.click(await screen.findByRole('button', { name: /Ada Lovelace/ }));
+    expect(await screen.findByText(/Başlangıç: 01\/09\/2026/)).toBeInTheDocument();
+    expect(screen.getByText('Program aktif')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Ada Lovelace' }));
     expect(await screen.findByRole('dialog', { name: 'Ada Lovelace' })).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Kontrol edildi.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Kapat' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Detay' }));
+    expect(await screen.findByRole('dialog', { name: 'Ada Lovelace' })).toBeInTheDocument();
+    expect(screen.queryByText('Internal not')).not.toBeInTheDocument();
     expect(screen.getByText('Topluma katkı')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Başvuru sonucu' }), {
+      target: { value: 'APPROVED' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Gerekçe' }), {
+      target: { value: 'Uygun bulundu.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Durumu güncelle' }));
+    expect(await screen.findByText('Başvuru sonucu ve gerekçesi güncellendi.')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(adminApplicationApi.changeStatus).toHaveBeenCalledWith(
+        'app-1',
+        'APPROVED',
+        2,
+        'Uygun bulundu.',
+      ),
+    );
   });
 });
