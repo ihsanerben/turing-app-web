@@ -52,6 +52,8 @@ export function AdminLayout() {
           <NavLink to="/admin/students">Öğrenciler</NavLink>
           <NavLink to="/admin/admins">Adminler</NavLink>
           <NavLink to="/admin/lists">Listeler</NavLink>
+          <NavLink to="/admin/meals">Yemekler</NavLink>
+          <NavLink to="/admin/events">Etkinlikler</NavLink>
           <NavLink to="/admin/interviews">Mülakatlar</NavLink>
           <NavLink to="/admin/email">E-posta</NavLink>
           <NavLink to="/admin/content">İçerik</NavLink>

@@ -1,4 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { MealsPage } from '../features/participation/MealsPage';
+import { EventsPage } from '../features/participation/EventsPage';
 import { NotFoundPage } from './NotFoundPage';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -64,6 +66,8 @@ export function App() {
           <Route path="portal" element={<StudentLayout />}>
             <Route index element={<StudentDashboardPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="meals" element={<MealsPage />} />
+            <Route path="events" element={<EventsPage />} />
             <Route path="programs" element={<ProgramsPage />} />
             <Route path="applications" element={<ApplicationListPage />} />
             <Route path="applications/:id/form" element={<ApplicationFormPage />} />
@@ -81,6 +85,8 @@ export function App() {
             <Route path="programs" element={<ScholarshipAdminPage />} />
             <Route path="interviews" element={<AdminInterviewsPage />} />
             <Route path="email" element={<AdminEmailCampaignsPage />} />
+            <Route path="meals" element={<MealsPage admin />} />
+            <Route path="events" element={<EventsPage admin />} />
             <Route path="content" element={<AdminContentPage />} />
             <Route path="statistics" element={<AdminStatisticsPage />} />
             <Route path="audit" element={<AdminAuditPage />} />

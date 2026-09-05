@@ -2435,3 +2435,287 @@ button.action-save {
     animation-duration: 0.01ms !important;
   }
 }
+
+.participation-fields {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.participation-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border-color, #dde3ed);
+  padding: 1rem 0;
+}
+
+.participation-list article > div {
+  min-width: 0;
+}
+.participation-list h3 {
+  margin: 0 0 0.5rem;
+}
+.participation-list button {
+  flex-shrink: 0;
+}
+.participation-list button[aria-pressed='true'] {
+  background: #166534;
+  color: #fff;
+}
+.participation-description {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.participation-save {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .participation-list article,
+  .participation-save {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.participation-workspace > header {
+  margin-bottom: 24px;
+}
+.participation-workspace > header > p:last-child {
+  max-width: 760px;
+  line-height: 1.65;
+}
+.participation-toolbar {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 24px;
+}
+.participation-card-header,
+.participation-row-actions,
+.participation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.participation-row-actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+.participation-actions {
+  justify-content: flex-end;
+  padding-top: 20px;
+  margin-top: 4px;
+  border-top: 1px solid #e3e9f2;
+}
+.participation-form > p {
+  margin: 0 0 8px;
+  color: #526178;
+}
+.participation-date-field {
+  display: grid;
+  gap: 10px;
+  max-width: 340px;
+}
+.meal-days-grid {
+  display: grid;
+  gap: 10px;
+}
+.management-card label.meal-day-choice {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #dce4ef;
+  border-radius: 12px;
+  padding: 15px 18px;
+  cursor: pointer;
+  background: #f8fafc;
+}
+.management-card label.meal-day-choice:has(input:checked) {
+  border-color: #b7c6f8;
+  background: #eef2ff;
+}
+.management-card .meal-day-choice input[type='checkbox'] {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  padding: 0;
+  margin: 0 0 0 auto;
+  accent-color: #3855cf;
+}
+.participation-help {
+  color: #637188;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+button.participation-secondary,
+.management-card button.participation-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 17px;
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+button.participation-secondary:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.participation-workspace button:disabled,
+.participation-dialog button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.participation-dialog {
+  position: fixed;
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #dce4ef;
+  border-radius: 20px;
+  background: #fff;
+  color: #172033;
+  box-shadow: 0 24px 80px rgb(15 23 42 / 25%);
+}
+.participation-dialog::backdrop {
+  background: rgb(15 23 42 / 48%);
+  backdrop-filter: blur(3px);
+}
+.participation-dialog-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 26px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+.participation-dialog-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.participation-dialog-close {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 24px;
+  cursor: pointer;
+}
+.participation-dialog-content {
+  padding: 24px 26px;
+}
+.participation-dialog-content .management-card {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.participation-dialog-content .participation-form > h2 {
+  display: none;
+}
+.participation-day-filter {
+  display: grid;
+  gap: 8px;
+  font-weight: 650;
+  margin-bottom: 24px;
+}
+.participation-day-filter select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+.participation-participants h2 {
+  font-size: 1.1rem;
+}
+.participation-participants ul {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.participation-participants li {
+  padding: 13px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.participation-workspace button.action-save,
+.participation-dialog button.action-save {
+  background: #3855cf;
+  border-color: #3855cf;
+  color: #fff;
+}
+.participation-workspace button.action-update,
+.participation-dialog button.action-update {
+  background: #d97706;
+  border-color: #d97706;
+  color: #fff;
+}
+@media (max-width: 640px) {
+  .participation-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .participation-row-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .participation-dialog-header,
+  .participation-dialog-content {
+    padding: 18px;
+  }
+  .management-card label.meal-day-choice {
+    padding: 13px;
+    gap: 12px;
+  }
+}
+
+.participation-week-select {
+  display: grid;
+  gap: 10px;
+  max-width: 440px;
+  margin: 24px 0;
+  font-weight: 650;
+}
+.participation-week-select select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+}
+.participation-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}

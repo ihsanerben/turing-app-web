@@ -50,6 +50,8 @@ export function StudentLayout() {
           <NavLink to="/portal/programs">Programlar</NavLink>
           <NavLink to="/portal/profile">Profilim</NavLink>
           <NavLink to="/portal/applications">Başvurularım</NavLink>
+          <NavLink to="/portal/meals">Yemekler</NavLink>
+          <NavLink to="/portal/events">Etkinlikler</NavLink>
           <NavLink to="/portal/interviews">Mülakatlarım</NavLink>
           <NavLink to="/portal/notifications">Bildirimler</NavLink>
         </nav>
